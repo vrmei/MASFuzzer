@@ -11,6 +11,7 @@ Last updated: 2026-06-30
 - Remote SSH login succeeded.
 - Remote environment inspection is complete.
 - Repository setup is complete via SFTP source snapshot fallback after remote GitHub clone failures.
+- Clean remote Python environment is complete and CUDA/PyTorch works.
 
 ## Remote environment check
 
@@ -45,14 +46,33 @@ Last updated: 2026-06-30
   - Python: `/root/miniconda3/bin/python3`, version 3.12.3
   - Conda: `/root/miniconda3/bin/conda`, version 24.4.0
   - Pip: `/root/miniconda3/bin/pip`
-- PyTorch status: not yet checked inside the login shell or a clean environment. The first non-login check failed because `python3` was not on `PATH`.
+- Base login-shell PyTorch:
+  - `torch 2.8.0+cu128`
+  - `transformers 5.12.1`
+  - `accelerate 1.14.0`
+  - `numpy 2.3.2`
+  - `scipy 1.17.1`
+  - `sentencepiece 0.2.1`
+  - CUDA available: yes
+  - Device: Tesla V100S-PCIE-32GB
+- Clean experiment environment:
+  - Path: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/envs/gcg-probe`
+  - Creation method: conda clone of base into the experiment directory, so the remote base environment is not modified.
+  - Python: 3.12.3
+  - `torch 2.8.0+cu128`, CUDA 12.8, CUDA available.
+  - Device count: 1
+  - Device 0: Tesla V100S-PCIE-32GB
+- Activation helper:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/activate_gcg_probe.sh`
+  - Sets `HF_HOME`, `TRANSFORMERS_CACHE`, `HF_HUB_CACHE`, and `PIP_CACHE_DIR` under the experiment base.
 
 ## Model feasibility
 
 - The V100S 32GB can comfortably support 0.5B-1.5B instruct models for the initial smoke probe.
 - 3B-class models should be feasible for short-context logits/embedding probes if dependencies install cleanly.
 - 7B-class models may be feasible with careful memory use, quantization, or smaller batch sizes, but should not be the first smoke target.
-- Root disk is too tight for model caches. Any HuggingFace/model cache should be placed under `/root/autodl-tmp`, which currently has about 62 GiB free.
+- Root disk is too tight for model caches. Any HuggingFace/model cache should be placed under `/root/autodl-tmp`.
+- After creating the isolated conda environment, `/root/autodl-tmp` has about 54 GiB free.
 - HuggingFace direct downloads may be blocked from this host. GitHub is reachable, so alternatives may include mirrored model sources, manually supplied cached weights, or `hf-mirror.com` if allowed by the server network.
 
 ## Repository setup
@@ -76,6 +96,18 @@ Last updated: 2026-06-30
   - `docs/gcg_remote_probe_status.md`
 - Snapshot metadata file on remote: `REMOTE_SNAPSHOT_REVISION.txt`
 
+## Python environment setup
+
+- Environment path: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/envs/gcg-probe`
+- Setup log: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/env_create_20260630_223038.log`
+- Method: `conda create --clone base -p /root/autodl-tmp/masfuzzer-gcg-probe-20260630/envs/gcg-probe -y`
+- Reason for clone instead of fresh install: base already had a working CUDA/PyTorch stack; cloning isolates the experiment while avoiding another large torch download.
+- Cache directories created:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/hf_home`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/pip_cache`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs`
+- Smoke import result: success for `torch`, `transformers`, `accelerate`, `numpy`, `scipy`, and `sentencepiece`.
+
 ## Executed command summary
 
 - Checked local availability of `ssh.exe` and `scp.exe`.
@@ -93,16 +125,19 @@ Last updated: 2026-06-30
 - Created a local git archive of current `HEAD`.
 - Uploaded the archive with SFTP and extracted it into the clean remote experiment directory.
 - Wrote remote snapshot metadata with the source commit hash.
+- Checked base login-shell Python and PyTorch.
+- Created isolated remote conda environment under the experiment directory.
+- Verified CUDA availability from the isolated environment.
+- Created activation helper and cache directories under `/root/autodl-tmp`.
 
 ## Immediate execution plan
 
-1. Create a clean Python environment for the open-weight probe, with caches directed to `/root/autodl-tmp`.
-2. Check PyTorch in that clean environment.
-3. Probe package-install feasibility without downloading large model weights.
-4. Prepare only a minimal smoke plan for supervisor + swarm, 10-20 payloads, six insertion slots, 4-8 token spans, and controls.
-5. If the environment is smooth, scaffold or run only a tiny dry-run / 1-2 payload sanity check.
+1. Probe model-download feasibility without downloading large model weights.
+2. Prepare the minimal smoke script skeleton for supervisor + swarm, 10-20 payloads, six insertion slots, 4-8 token spans, and controls.
+3. Run only a dry-run/mock or 1-2 payload sanity check.
+4. Do not start a large GCG search until the user approves the model/download path.
 
 ## User decisions needed
 
 - Need a model-download decision if HuggingFace remains unreachable from the remote host. A HuggingFace token alone may not fix the current issue because the observed failure was connection refused, not authentication denied.
-- No decision needed before repository clone and clean environment creation.
+- No decision needed before script skeleton and dry-run/mock.
