@@ -10,7 +10,7 @@ Last updated: 2026-06-30
 - SSH password is intentionally not recorded in this document, command summaries, logs, or commit messages.
 - Remote SSH login succeeded.
 - Remote environment inspection is complete.
-- Repository setup is pending.
+- Repository setup is complete via SFTP source snapshot fallback after remote GitHub clone failures.
 
 ## Remote environment check
 
@@ -57,7 +57,24 @@ Last updated: 2026-06-30
 
 ## Repository setup
 
-Pending.
+- Clean experiment base: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630`
+- Current symlink: `/root/autodl-tmp/masfuzzer-gcg-probe-current`
+- Source directory: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/MASFuzzer`
+- Remote setup logs:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/repo_setup_20260630_222401.log`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/repo_setup_retry_20260630_222504.log`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/repo_sftp_snapshot_20260630_222809.log`
+- Attempt 1: `git clone https://github.com/vrmei/MASFuzzer.git ...`
+  - Result: failed with GitHub HTTP/2 framing error.
+- Attempt 2: `git -c http.version=HTTP/1.1 clone --depth 1 --branch main https://github.com/vrmei/MASFuzzer.git ...`
+  - Result: failed with connection timeout to `github.com:443`.
+- Fallback used: local `git archive --format=tar.gz HEAD`, uploaded by SFTP and extracted remotely.
+- Snapshot source commit: `dcdb6f138806e7d171abbe4e8c62050e28eda099`
+- Required design docs are present in the remote snapshot:
+  - `docs/gcg_mechanism_probe_plan.md`
+  - `docs/LEXICAL_LEVERS.md`
+  - `docs/gcg_remote_probe_status.md`
+- Snapshot metadata file on remote: `REMOTE_SNAPSHOT_REVISION.txt`
 
 ## Executed command summary
 
@@ -71,15 +88,19 @@ Pending.
 - Ran CUDA/runtime path checks: `nvcc --version`, `ls -d /usr/local/cuda*`.
 - Ran Python/conda checks in both default shell and login shell.
 - Ran network checks with `curl -I -L --max-time 15` for HuggingFace and GitHub.
+- Created remote experiment base under `/root/autodl-tmp`.
+- Attempted remote GitHub clone twice, recording both failures to remote logs.
+- Created a local git archive of current `HEAD`.
+- Uploaded the archive with SFTP and extracted it into the clean remote experiment directory.
+- Wrote remote snapshot metadata with the source commit hash.
 
 ## Immediate execution plan
 
-1. Create a clean remote experiment directory under `/root/autodl-tmp`.
-2. Clone `https://github.com/vrmei/MASFuzzer.git`.
-3. Create a clean Python environment for the open-weight probe, with caches directed to `/root/autodl-tmp`.
-4. Check PyTorch in that clean environment.
-5. Prepare only a minimal smoke plan for supervisor + swarm, 10-20 payloads, six insertion slots, 4-8 token spans, and controls.
-6. If the environment is smooth, scaffold or run only a tiny dry-run / 1-2 payload sanity check.
+1. Create a clean Python environment for the open-weight probe, with caches directed to `/root/autodl-tmp`.
+2. Check PyTorch in that clean environment.
+3. Probe package-install feasibility without downloading large model weights.
+4. Prepare only a minimal smoke plan for supervisor + swarm, 10-20 payloads, six insertion slots, 4-8 token spans, and controls.
+5. If the environment is smooth, scaffold or run only a tiny dry-run / 1-2 payload sanity check.
 
 ## User decisions needed
 
