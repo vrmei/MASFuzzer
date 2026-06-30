@@ -77,6 +77,71 @@ The capability-paradox certainty effect is thus ONE instance of a general law: *
 agents it defers to endorse the action; certainty is the form that endorsement takes at an auditor edge.** This
 turns the "certainty doesn't generalize" negative into a unified, mechanism-grounded cross-architecture story.
 
+---
+
+# Proposed next mechanism probe: position-free GCG-style token search
+
+Idea recorded 2026-06-30.
+
+Hypothesis: each MAS topology may have a latent token/phrase direction that reliably moves the trusted
+inter-agent interface toward its native failure mode. Instead of hand-specifying a lexicon such as certainty,
+endorsement, vote balance, or handoff fit, search for short adversarial token spans that can be inserted into a
+payload and cause one topology to pass while others remain blocked. Then interpret the discovered span by asking
+which human-readable lexicon or semantic direction is nearest to its embedding.
+
+Why this is attractive:
+
+- It turns lever discovery into a falsifiable procedure rather than a post-hoc label.
+- It could reveal a topology-specific mechanism even when our 7-feature lexical panel is too coarse.
+- It gives a story that connects attack success to representation-level evidence: the suffix/infix is not just
+  a weird string; it points toward a semantic basin such as safety-certainty, specialist-readiness, majority
+  endorsement, remediation-planning, or authority transfer.
+- It is especially useful for explaining why a discovered lever is real: if the optimized tokens cluster near
+  the same lexicon across seeds and payloads, the mechanism is more credible than a one-off prompt artifact.
+
+Important modification relative to classic GCG:
+
+- The insertion position should be free, not suffix-only. MAS prompts often have structured fields, and the
+  causal location may differ by topology:
+  - supervisor: near the evidence or auditor-facing rationale;
+  - pipeline: near the objection-to-plan conversion point;
+  - groupchat: near shared evidence or vote framing;
+  - swarm: near ownership, pre-check, or specialist-review clauses.
+- The search target should be an upstream interface score, not only final hijack. Examples:
+  - supervisor: auditor safe-certainty logit/score;
+  - swarm: triage route plus specialist continuation score;
+  - groupchat: endorsement balance;
+  - pipeline: executable-plan score and objection erasure.
+
+Feasibility assessment:
+
+- Strongest with local open-weight models, because gradient/token-logit access makes GCG-style search and
+  embedding interpretation meaningful.
+- Weak with black-box APIs as true GCG, because APIs generally do not expose gradients and often hide token
+  logprobs. A black-box evolutionary search can still find strings, but the representation-level explanation is
+  weaker.
+- Needs careful controls. Otherwise the method may rediscover obvious prompt artifacts, tokenizer quirks, or
+  nonsensical trigger strings rather than a paper-worthy MAS mechanism.
+
+Minimum viable version:
+
+1. Choose one open-weight instruct model as a mechanistic sandbox.
+2. For each topology, optimize a short token span over a fixed set of payloads and insertion slots.
+3. Select spans that transfer across held-out payloads, not just one payload.
+4. Compare against random-token, random-position, and human-lexicon baselines.
+5. Embed the discovered spans and compare nearest-neighbor similarity to curated lexicons:
+   certainty/safety, endorsement, authorization, specialist-readiness, remediation planning, urgency, recovery.
+6. Report only stable clusters, not isolated strings.
+
+Interpretation rule:
+
+- If discovered tokens improve a topology and cluster near the expected lexicon, the result supports that
+  topology's proposed lever.
+- If discovered tokens improve success but do not cluster semantically, treat them as an adversarial artifact,
+  useful for robustness testing but not for the paper's main mechanism claim.
+- If tokens transfer across models/topologies poorly, frame the finding as model-specific rather than a general
+  MAS lever.
+
 ## Causal test of the swarm lever (run_endorse_steer.py) — INCONCLUSIVE due to a ceiling effect (honest)
 Steering an attacker LLM to maximize triage endorsement (mode=`endorse`) vs same LLM no objective (`neutral`),
 swarm, budget=50/arm:
