@@ -12,6 +12,8 @@ Last updated: 2026-06-30
 - Remote environment inspection is complete.
 - Repository setup is complete via SFTP source snapshot fallback after remote GitHub clone failures.
 - Clean remote Python environment is complete and CUDA/PyTorch works.
+- Minimal smoke script skeleton is implemented and pushed.
+- Remote dry-run/mock sanity check completed successfully without downloading model weights.
 
 ## Remote environment check
 
@@ -129,6 +131,44 @@ Last updated: 2026-06-30
   - 3B only if download speed and disk headroom are acceptable.
   - 7B should wait for user approval because remaining disk headroom is about 54 GiB and the branch should not burn large GPU/model-download budget yet.
 
+## Smoke script and dry-run
+
+- Script: `scripts/gcg_position_free_smoke.py`
+- Default mode: `--mode dry-run`
+- Real-model entry point: `--mode real --model Qwen/Qwen2.5-0.5B-Instruct`
+- Topologies implemented for smoke:
+  - `supervisor`
+  - `swarm`
+- Insertion slots implemented:
+  - `prefix`
+  - `after_incident_summary`
+  - `before_requested_action`
+  - `after_requested_action`
+  - `evidence_adjacent`
+  - `suffix`
+- Controls implemented:
+  - `no_token`
+  - `candidate`
+  - `random_token`
+  - `human_lexicon_phrase`
+- Objective:
+  - Dry-run mode uses a transparent lexical proxy for the upstream interface score.
+  - Real mode scores topology-specific upstream interface target phrases by local-model average log probability.
+- Remote sync method: SFTP uploaded the script into the remote snapshot because remote GitHub clone/pull was unreliable.
+- Remote dry-run command:
+  - `python scripts/gcg_position_free_smoke.py --mode dry-run --payload-limit 2 --topologies supervisor swarm --span-length 4 --out /root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_position_free_dryrun.jsonl`
+- Remote dry-run log:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/sync_and_dryrun_20260630_223736.log`
+- Remote dry-run outputs:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_position_free_dryrun.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_position_free_dryrun.summary.json`
+- Dry-run result:
+  - 2 payloads
+  - 56 scored rows
+  - No model weight download
+  - No GPU-heavy workload
+  - Sanity passed
+
 ## Executed command summary
 
 - Checked local availability of `ssh.exe` and `scp.exe`.
@@ -152,15 +192,20 @@ Last updated: 2026-06-30
 - Created activation helper and cache directories under `/root/autodl-tmp`.
 - Probed model-source connectivity for HuggingFace, `hf-mirror.com`, and ModelScope.
 - Verified small `config.json` download from `hf-mirror.com` using both `curl` and `huggingface_hub`.
+- Added `scripts/gcg_position_free_smoke.py`.
+- Ran a local dry-run syntax/smoke check.
+- SFTP-synced the script to the remote snapshot.
+- Ran a remote 2-payload dry-run/mock sanity check and wrote JSONL + summary outputs under the remote experiment base.
 
 ## Immediate execution plan
 
-1. Prepare the minimal smoke script skeleton for supervisor + swarm, 10-20 payloads, six insertion slots, 4-8 token spans, and controls.
-2. Run only a dry-run/mock or 1-2 payload sanity check.
-3. Optionally download only the 0.5B smoke model through `hf-mirror.com` if a real sanity check is needed.
+1. Wait for user approval before downloading model weights or running a real 0.5B sanity check.
+2. If approved, run only `Qwen/Qwen2.5-0.5B-Instruct` through `hf-mirror.com` on 1-2 payloads first.
+3. If the 0.5B real sanity check works, expand to 10-20 payloads and held-out transfer.
 4. Do not start a large GCG search until the user approves scaling beyond the tiny smoke.
 
 ## User decisions needed
 
 - No HuggingFace token is needed for the proposed first smoke model if `hf-mirror.com` remains usable.
-- User approval is needed before downloading/running 3B or 7B models, or before starting a full GCG search.
+- User approval is needed before downloading any model weights for a real sanity check.
+- User approval is definitely needed before running 3B/7B models or a full GCG search.
