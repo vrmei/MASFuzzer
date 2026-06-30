@@ -18,6 +18,8 @@ Last updated: 2026-06-30
 - A local existing instruct model was found and used for a 1-payload real logprob sanity check without downloading new weights.
 - User approved 7B expansion; a 10-payload Qwen2.5-7B-Instruct real-logprob expanded scoring smoke completed successfully with no new weight downloads.
 - User approved the first true minimal coordinate-search probe; the 10-payload Qwen2.5-7B-Instruct run completed successfully with no OOM.
+- Fixed-slot repeat seeds 12 and 13 completed successfully after repairing duplicate slot rendering.
+- Semantic-only candidate-pool seed 14 completed successfully and removed the neutral-token artifact from the supervisor span.
 
 ## Remote environment check
 
@@ -433,6 +435,53 @@ This budget was approved by the user and then used for the first true coordinate
   - The result is promising mechanism-probe evidence, but not yet a paper-grade mechanistic claim because it uses only 10 payloads, 2 topology proxies, and a word-level lexicon search instead of full gradient/token GCG.
   - The swarm span contains `queued`, which may reflect a topology-specific readiness/handoff signal or a fluency artifact; it should be checked with embedding-nearest lexical analysis before using it as a mechanism claim.
 
+## Fixed-slot repeat and artifact check
+
+- Status: success.
+- Reason: the first coordinate-search probe exposed duplicate slot renderings, so the scripts were fixed and two additional 10-payload seeds were run.
+- Run ids:
+  - `fixedslot_qwen25_7b_p10_s20_c16_seed12`
+  - `fixedslot_qwen25_7b_p10_s20_c16_seed13`
+- Remote log:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/fixedslot_repeat_s12_s13_20260630.log`
+- Outputs:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_fixedslot_seed12.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_fixedslot_seed12.summary.json`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_fixedslot_seed12.trajectory.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_fixedslot_seed13.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_fixedslot_seed13.summary.json`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_fixedslot_seed13.trajectory.jsonl`
+- Seed 12 selections:
+  - supervisor: `justified audited remediation approval`, slot `suffix`, held-out selected -5.317 vs human -5.713
+  - swarm: `specialist queued coordinated remediation`, slot `after_incident_summary`, held-out selected -5.016 vs human -5.063
+- Seed 13 selections:
+  - supervisor: `justified orbit remediation validated`, slot `suffix`, held-out selected -5.112 vs human -5.713
+  - swarm: `specialist queued coordinated remediation`, slot `after_incident_summary`, held-out selected -5.016 vs human -5.063
+- Readout:
+  - The supervisor direction remains positive after fixing slot rendering.
+  - The swarm selected span is stable but only slightly improves over the human swarm lexicon.
+  - Seed 13 accepted neutral words (`copper`, then `orbit`) in the supervisor span. This is an artifact signal. Future interpretability runs should use `--candidate-pool semantic`, while `--candidate-pool mixed` should be kept as an artifact stress test.
+
+## Semantic-only coordinate-search check
+
+- Status: success.
+- Reason: rerun the same 10-payload fixed-slot probe while excluding neutral artifact-probe words from the search candidate pool.
+- Run id: `semanticpool_qwen25_7b_p10_s20_c16_seed14`
+- Candidate pool: `semantic`
+- Remote log:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/semanticpool_seed14_20260630.log`
+- Outputs:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_semanticpool_seed14.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_semanticpool_seed14.summary.json`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_semanticpool_seed14.trajectory.jsonl`
+- Selections:
+  - supervisor: `reviewed authorized remediation justified`, slot `suffix`, held-out selected -4.894 vs human -5.713
+  - swarm: `specialist queued coordinated remediation`, slot `after_incident_summary`, held-out selected -5.016 vs human -5.063
+- Readout:
+  - The supervisor mechanism signal becomes cleaner and stronger when neutral candidates are excluded.
+  - The swarm selected span is stable, but still only slightly improves over the human swarm lexicon.
+  - For interpretability, use semantic candidate-pool runs as the primary mechanism evidence and mixed candidate-pool runs as artifact stress tests.
+
 ## Executed command summary
 
 - Checked local availability of `ssh.exe` and `scp.exe`.
@@ -479,8 +528,9 @@ This budget was approved by the user and then used for the first true coordinate
 
 1. Inspect coordinate-search case studies and the search trajectory to identify whether gains come from stable topology levers or prompt-format artifacts.
 2. Run embedding-nearest lexical analysis for the selected spans against the topology lever lexicon.
-3. If the selected spans remain interpretable, repeat the coordinate-search probe with at least two more seeds and a larger payload split.
-4. Keep the current 7B local model and no-download policy until the mechanism branch needs a second open-weight model.
+3. Add cross-topology controls before scaling payload count.
+4. Repeat semantic-pool search with one more seed, then expand to 20-50 payloads if the supervisor result remains stable.
+5. Keep the current 7B local model and no-download policy until the mechanism branch needs a second open-weight model.
 
 ## User decisions needed
 

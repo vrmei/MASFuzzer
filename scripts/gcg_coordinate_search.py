@@ -306,8 +306,16 @@ def best_slot_for_span(
     return str(best["slot"]), float(best["score"]), rows
 
 
-def candidate_words(topology: str, rng: random.Random, budget: int, current_word: str) -> list[str]:
-    pool = list(TOPOLOGY_LEXICONS[topology]) + list(NEUTRAL_WORDS)
+def candidate_words(
+    topology: str,
+    rng: random.Random,
+    budget: int,
+    current_word: str,
+    candidate_pool: str,
+) -> list[str]:
+    pool = list(TOPOLOGY_LEXICONS[topology])
+    if candidate_pool == "mixed":
+        pool += list(NEUTRAL_WORDS)
     pool = [word for word in pool if word != current_word]
     rng.shuffle(pool)
     return pool[:budget]
@@ -325,6 +333,7 @@ def coordinate_search_topology(
     span_length: int,
     steps: int,
     candidates_per_step: int,
+    candidate_pool: str,
     rng: random.Random,
     warm_start: str,
 ) -> tuple[dict, list[dict]]:
@@ -355,7 +364,13 @@ def coordinate_search_topology(
     for step in range(1, steps + 1):
         coord = (step - 1) % span_length
         current_words = best_span.split()
-        options = candidate_words(topology, rng, candidates_per_step, current_words[coord])
+        options = candidate_words(
+            topology,
+            rng,
+            candidates_per_step,
+            current_words[coord],
+            candidate_pool,
+        )
         candidate_rows = []
         step_best = {
             "word": current_words[coord],
@@ -535,6 +550,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--span-length", type=int, default=4)
     parser.add_argument("--steps", type=int, default=20)
     parser.add_argument("--candidates-per-step", type=int, default=16)
+    parser.add_argument(
+        "--candidate-pool",
+        choices=("mixed", "semantic"),
+        default="mixed",
+        help="mixed includes neutral artifact-probe words; semantic uses only the topology lexicon.",
+    )
     parser.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct")
     parser.add_argument("--device", default="auto")
     parser.add_argument("--local-files-only", action="store_true")
@@ -582,6 +603,7 @@ def main() -> int:
             args.span_length,
             args.steps,
             args.candidates_per_step,
+            args.candidate_pool,
             rng,
             warm_start,
         )
@@ -620,6 +642,7 @@ def main() -> int:
         "span_length": args.span_length,
         "steps": args.steps,
         "candidates_per_step": args.candidates_per_step,
+        "candidate_pool": args.candidate_pool,
         "objective": "train_split_topology_specific_upstream_interface_average_logprob"
         if args.mode == "real"
         else "dry_run_lexical_proxy",
