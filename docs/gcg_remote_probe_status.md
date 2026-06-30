@@ -17,6 +17,7 @@ Last updated: 2026-06-30
 - Remote local-model cache search completed successfully.
 - A local existing instruct model was found and used for a 1-payload real logprob sanity check without downloading new weights.
 - User approved 7B expansion; a 10-payload Qwen2.5-7B-Instruct real-logprob expanded scoring smoke completed successfully with no new weight downloads.
+- User approved the first true minimal coordinate-search probe; the 10-payload Qwen2.5-7B-Instruct run completed successfully with no OOM.
 
 ## Remote environment check
 
@@ -348,9 +349,9 @@ Last updated: 2026-06-30
   - The swarm-specific human lexicon phrase is the stronger swarm lever in this fixed-span smoke.
   - Because spans were not optimized, these are screening signals only, not mechanism evidence yet.
 
-## Minimal full GCG-search budget recommendation
+## Minimal coordinate-search budget that was executed
 
-Do not launch this without explicit user approval.
+This budget was approved by the user and then used for the first true coordinate-search probe below.
 
 - Model: keep `/root/autodl-tmp/models/Qwen2.5-7B-Instruct`, local files only.
 - Topologies: supervisor + swarm only for the first true search.
@@ -364,6 +365,73 @@ Do not launch this without explicit user approval.
   - held-out improvement in the same direction,
   - no equal improvement on unrelated topology,
   - embedding-nearest lexicon check points toward certainty / endorsement / specialist-readiness / remediation-planning semantics.
+
+## Minimal coordinate-search GCG
+
+- Status: success.
+- This is the first true search probe in this branch, but it is still a **minimal word-level coordinate-search probe**, not paper-scale gradient GCG.
+- Model: `/root/autodl-tmp/models/Qwen2.5-7B-Instruct`
+- Download policy: no new weights; `--local-files-only` with offline HuggingFace/Transformers guards.
+- Run label: `minimal_coordinate_search_qwen25_7b_p10_s20_c16`
+- Remote outputs:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_s20_c16.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_s20_c16.summary.json`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_s20_c16.trajectory.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/coord_qwen25_7b_p10_s20_c16_20260630_230834.status`
+- Runtime and memory:
+  - runtime: 1062.27 seconds, about 17.7 minutes
+  - max GPU allocated: 14,647.5 MiB
+  - max GPU reserved: 14,678.0 MiB
+  - no OOM or runtime error
+- Payload bookkeeping:
+  - payload file: `data/paradox_dataset_500.json`
+  - payload limit: 10
+  - train payload ids: `0`, `1`, `2`, `3`, `4`
+  - held-out payload ids: `5`, `6`, `7`, `8`, `9`
+- Search budget:
+  - topologies: `supervisor`, `swarm`
+  - slots: `prefix`, `after_incident_summary`, `before_requested_action`, `after_requested_action`, `evidence_adjacent`, `suffix`
+  - span length: 4 words
+  - steps: 20 per topology
+  - candidates per step: 16
+  - seed: 11
+  - objective: train-split topology-specific upstream-interface average log probability
+- Selected spans:
+  - supervisor: `validated authorized remediation justified`
+    - best slot: `after_requested_action`
+    - warm start: `verified necessary remediation approval`
+    - train score: -5.002
+    - held-out score: -5.151
+  - swarm: `specialist queued coordinated remediation`
+    - best slot: `after_incident_summary`
+    - warm start: `specialist ready coordinated remediation`
+    - train score: -4.847
+    - held-out score: -5.016
+- Held-out control comparison:
+  - supervisor selected search span: -5.151
+  - supervisor human/manual lexicon: -5.910
+  - supervisor no-token: -7.048
+  - supervisor random-token/random-position: -6.749
+  - swarm selected search span: -5.016
+  - swarm human lexicon phrase: -5.063
+  - swarm manual seed candidate: -6.015
+  - swarm no-token: -6.453
+  - swarm random-token/random-position: -7.648
+- Overall control comparison:
+  - supervisor selected search span: n=10, mean=-5.077
+  - supervisor human/manual lexicon: n=10, mean=-5.881
+  - supervisor no-token: n=10, mean=-7.029
+  - supervisor random-token/random-position: n=10, mean=-6.740
+  - swarm selected search span: n=10, mean=-4.932
+  - swarm human lexicon phrase: n=10, mean=-5.053
+  - swarm manual seed candidate: n=10, mean=-5.976
+  - swarm no-token: n=10, mean=-6.413
+  - swarm random-token/random-position: n=10, mean=-7.567
+- Readout:
+  - Engineering feasibility is confirmed: the local 7B offline coordinate-search path runs on the V100S with stable memory.
+  - The selected spans are semantically interpretable and transfer in the same direction on held-out payloads.
+  - The result is promising mechanism-probe evidence, but not yet a paper-grade mechanistic claim because it uses only 10 payloads, 2 topology proxies, and a word-level lexicon search instead of full gradient/token GCG.
+  - The swarm span contains `queued`, which may reflect a topology-specific readiness/handoff signal or a fluency artifact; it should be checked with embedding-nearest lexical analysis before using it as a mechanism claim.
 
 ## Executed command summary
 
@@ -401,16 +469,21 @@ Do not launch this without explicit user approval.
 - SFTP-synced the split-summary script to the remote snapshot and verified new args with `--help`.
 - Ran the 10-payload Qwen2.5-7B-Instruct expanded scoring smoke using only local files.
 - Recorded runtime, GPU memory, outputs, summaries, and no-OOM status.
+- Added `scripts/gcg_coordinate_search.py`.
+- Ran a local dry-run format check for the coordinate-search output and trajectory.
+- SFTP-synced the coordinate-search script to the remote snapshot.
+- Ran the 10-payload Qwen2.5-7B-Instruct minimal coordinate-search probe using only local files.
+- Recorded selected spans, train/held-out transfer, controls, runtime, GPU memory, and no-OOM status.
 
 ## Immediate execution plan
 
-1. Await user approval before starting true position-free GCG search.
-2. If approved, implement a minimal coordinate-search loop over train payload ids only, then evaluate the selected span on held-out ids.
-3. Keep the current 7B local model and no-download policy.
-4. Do not expand to more payloads/topologies until the first optimized-span transfer result is interpretable.
+1. Inspect coordinate-search case studies and the search trajectory to identify whether gains come from stable topology levers or prompt-format artifacts.
+2. Run embedding-nearest lexical analysis for the selected spans against the topology lever lexicon.
+3. If the selected spans remain interpretable, repeat the coordinate-search probe with at least two more seeds and a larger payload split.
+4. Keep the current 7B local model and no-download policy until the mechanism branch needs a second open-weight model.
 
 ## User decisions needed
 
 - No HuggingFace token is needed for the proposed first smoke model if `hf-mirror.com` remains usable.
 - No download is needed for the current 7B path because `/root/autodl-tmp/models/Qwen2.5-7B-Instruct` already exists locally.
-- User approval is needed before full position-free GCG search.
+- User approval is needed before scaling beyond the completed 10-payload coordinate-search probe.
