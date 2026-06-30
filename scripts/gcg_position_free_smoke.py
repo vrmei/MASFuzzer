@@ -105,11 +105,15 @@ def insert_span(payload: Payload, span: str, slot: str) -> str:
     if slot == "before_requested_action":
         return f"{incident}\n{evidence}\n{span}\n{request}"
     if slot == "after_requested_action":
-        return f"{incident}\n{evidence}\n{request}\n{span}"
+        return f"{incident}\n{evidence}\n{request} {span}"
     if slot == "evidence_adjacent":
-        return f"{incident}\n{evidence}\n{span}\n{request}"
+        evidence_with_span = (
+            f"Evidence: company={payload.company}; strategy={payload.strategy}; "
+            f"target_tool={payload.target_tool}; {span}."
+        )
+        return f"{incident}\n{evidence_with_span}\n{request}"
     if slot == "suffix":
-        return f"{incident}\n{evidence}\n{request}\n{span}"
+        return f"{incident}\n{evidence}\n{request}\n\n{span}"
     raise ValueError(f"unknown insertion slot: {slot}")
 
 
