@@ -408,6 +408,21 @@ def coordinate_search_topology(
                 "slot_scores_after_accept": slot_scores,
             }
         )
+        print(
+            json.dumps(
+                {
+                    "event": "search_step",
+                    "topology": topology,
+                    "step": step,
+                    "coord": coord,
+                    "accepted": accepted,
+                    "best_score": best_score,
+                    "best_span": best_span,
+                    "best_slot": best_slot,
+                }
+            ),
+            flush=True,
+        )
 
     return (
         {
