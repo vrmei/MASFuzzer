@@ -1,0 +1,552 @@
+[
+    {
+        "id": "BFCL_Real_1",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the area of a triangle with a base of 10 units and height of 5 units."
+            }
+        ],
+        "tool_name": "calculate_triangle_area",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_2",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the factorial of 5 using math functions."
+            }
+        ],
+        "tool_name": "math.factorial",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_3",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the hypotenuse of a right triangle given the lengths of the other two sides as 4 and 5."
+            }
+        ],
+        "tool_name": "math.hypot",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_4",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the roots of a quadratic equation with coefficients a=1, b=-3, c=2."
+            }
+        ],
+        "tool_name": "algebra.quadratic_roots",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_5",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Solve a quadratic equation where a=2, b=6, and c=5"
+            }
+        ],
+        "tool_name": "solve_quadratic_equation",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_6",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find all the roots of a quadratic equation given coefficients a = 3, b = -11, and c = -4."
+            }
+        ],
+        "tool_name": "solve_quadratic",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_7",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What are the roots of the quadratic equation where a=2, b=5 and c=3 ?"
+            }
+        ],
+        "tool_name": "solve_quadratic",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_8",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What is the circumference of a circle with a radius of 4 inches?"
+            }
+        ],
+        "tool_name": "calculate_circumference",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_9",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What's the area of a circle with a radius of 10?"
+            }
+        ],
+        "tool_name": "geometry.area_circle",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_10",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the area of a circle with a radius of 5 units."
+            }
+        ],
+        "tool_name": "geometry.calculate_area_circle",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_11",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the area of a right-angled triangle given the lengths of its base and height as 6cm and 10cm."
+            }
+        ],
+        "tool_name": "calculate_area",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_12",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What is the area of a triangle with base of 10 units and height of 5 units?"
+            }
+        ],
+        "tool_name": "calculate_triangle_area",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_13",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the circumference of a circle with radius 3"
+            }
+        ],
+        "tool_name": "geometry.circumference",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_14",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the area under the curve y=x^2 from x=1 to x=3."
+            }
+        ],
+        "tool_name": "calculate_area_under_curve",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_15",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the derivative of the function 3x^2 + 2x - 1."
+            }
+        ],
+        "tool_name": "calculate_derivative",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_16",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the area under the curve from x = -2 to x = 3 for the function y = x^3 using simpson method."
+            }
+        ],
+        "tool_name": "integrate",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_17",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the derivative of the function 2x^2 at x = 1."
+            }
+        ],
+        "tool_name": "calculus.derivative",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_18",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the prime factors of 450"
+            }
+        ],
+        "tool_name": "get_prime_factors",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_19",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the prime factors of the number 123456."
+            }
+        ],
+        "tool_name": "number_analysis.prime_factors",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_20",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the greatest common divisor of two numbers: 40 and 50"
+            }
+        ],
+        "tool_name": "math.gcd",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_21",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the highest common factor of 36 and 24."
+            }
+        ],
+        "tool_name": "math.hcf",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_22",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the Greatest Common Divisor (GCD) of two numbers, say 36 and 48."
+            }
+        ],
+        "tool_name": "number_theory.gcd",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_23",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the greatest common divisor of two given numbers, for example 12 and 15."
+            }
+        ],
+        "tool_name": "math.gcd",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_24",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What is the prime factorization of the number 60? Return them in the form of dictionary"
+            }
+        ],
+        "tool_name": "prime_factorize",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_25",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the greatest common divisor (GCD) of 12 and 18"
+            }
+        ],
+        "tool_name": "math.gcd",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_26",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the final velocity of an object falling from a 150 meter building, assuming initial velocity is zero."
+            }
+        ],
+        "tool_name": "calculate_final_velocity",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_27",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the velocity of a car that travels a distance of 50 kilometers for a duration of 2 hours?"
+            }
+        ],
+        "tool_name": "calculate_velocity",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_28",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the final velocity of a vehicle after accelerating at 2 meters/second^2 for a duration of 5 seconds, starting from a speed of 10 meters/second."
+            }
+        ],
+        "tool_name": "final_velocity",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_29",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the displacement of a car given the initial velocity of 10 and acceleeration of 9.8 within 5 seconds."
+            }
+        ],
+        "tool_name": "calculate_displacement",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_30",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What is the final speed of an object dropped from rest after falling for 5 seconds if we neglect air resistance?"
+            }
+        ],
+        "tool_name": "calculate_final_speed",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_31",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What is the final velocity of a vehicle that started from rest and accelerated at 4 m/s^2 for a distance of 300 meters?"
+            }
+        ],
+        "tool_name": "kinematics.final_velocity_from_distance",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_32",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the final velocity of an object, knowing that it started from rest, accelerated at a rate of 9.8 m/s^2 for a duration of 5 seconds."
+            }
+        ],
+        "tool_name": "calculate_final_velocity",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_33",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the final speed of an object dropped from 100 m without air resistance."
+            }
+        ],
+        "tool_name": "calculate_final_speed",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_34",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Get directions from Sydney to Melbourne using the fastest route."
+            }
+        ],
+        "tool_name": "get_directions",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_35",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Create an itinerary for a 7 days trip to Tokyo with daily budgets not exceeding $100 and prefer exploring nature."
+            }
+        ],
+        "tool_name": "travel_itinerary_generator",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_36",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find an all vegan restaurant in New York that opens until at least 11 PM."
+            }
+        ],
+        "tool_name": "vegan_restaurant.find_nearby",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_37",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the shortest driving distance between New York City and Washington D.C."
+            }
+        ],
+        "tool_name": "get_shortest_driving_distance",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_38",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the estimated travel time by car from San Francisco to Los Angeles with stops at Santa Barbara and Monterey."
+            }
+        ],
+        "tool_name": "route.estimate_time",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_39",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What is the electrostatic potential between two charged bodies of 1e-9 and 2e-9 of distance 0.05?"
+            }
+        ],
+        "tool_name": "calculate_electrostatic_potential",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_40",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the electric field at a point 3 meters away from a charge of 2 coulombs."
+            }
+        ],
+        "tool_name": "calculate_electric_field",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_41",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the magnetic field produced at the center of a circular loop carrying current of 5 Ampere with a radius of 4 meters"
+            }
+        ],
+        "tool_name": "calculate_magnetic_field",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_42",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the electromagnetic force between two charges of 5C and 7C placed 3 meters apart."
+            }
+        ],
+        "tool_name": "electromagnetic_force",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_43",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the resonant frequency of an LC circuit given capacitance of 100µF and inductance of 50mH."
+            }
+        ],
+        "tool_name": "calculate_resonant_frequency",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_44",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the magnetic field strength 10 meters away from a long wire carrying a current of 20 Amperes."
+            }
+        ],
+        "tool_name": "calculate_magnetic_field_strength",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_45",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the electric field strength 4 meters away from a charge of 0.01 Coulombs."
+            }
+        ],
+        "tool_name": "calculate_electric_field_strength",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_46",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the energy (in Joules) absorbed or released during the phase change of 100g of water from liquid to steam at its boiling point."
+            }
+        ],
+        "tool_name": "thermo.calculate_energy",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_47",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the final temperature when 20 kg of water at 30 degree Celsius is mixed with 15 kg of water at 60 degree Celsius."
+            }
+        ],
+        "tool_name": "calculate_final_temperature",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_48",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Find the boiling point and melting point of water under the sea level of 5000m."
+            }
+        ],
+        "tool_name": "get_boiling_melting_points",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_49",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "What is the density of a substance with a mass of 45 kg and a volume of 15 m³?"
+            }
+        ],
+        "tool_name": "calculate_density",
+        "expected_args": {}
+    },
+    {
+        "id": "BFCL_Real_50",
+        "user_input": [
+            {
+                "role": "user",
+                "content": "Calculate the absolute pressure in pascals given atmospheric pressure of 1 atm and a gauge pressure of 2 atm."
+            }
+        ],
+        "tool_name": "calc_absolute_pressure",
+        "expected_args": {}
+    }
+]

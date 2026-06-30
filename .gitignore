@@ -1,0 +1,40 @@
+# Python/runtime caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments and dependency installs
+envs/
+.venv/
+venv/
+Lib/
+Scripts/
+
+# Experiment outputs and raw traces
+logs/
+*.log
+*.jsonl
+
+# Local Codex/agent scratch
+$CODEX_HOME/
+.agents/
+.codex_skill_tmp/
+.codex_skill_standardized/
+
+# Archives and generated bundles
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+.env
+*.key
+*.pem

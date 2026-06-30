@@ -1,0 +1,262 @@
+% Direction 5 — Security-oriented MAS fuzzing. References.
+% Every entry below carries a verified arXiv id (verified for this recon run) or is the
+% mother-paper stub. No fabricated ids. If an entry is added later it MUST be WebSearch-verified
+% against {arxiv.org, semanticscholar.org, aclanthology.org, www.usenix.org} first.
+
+% --- Classic trust / least-privilege foundations ---
+@article{saltzer1975protection,
+  title   = {The Protection of Information in Computer Systems},
+  author  = {Saltzer, Jerome H. and Schroeder, Michael D.},
+  journal = {Proceedings of the IEEE},
+  volume  = {63},
+  number  = {9},
+  pages   = {1278--1308},
+  year    = {1975}
+}
+
+@article{hardy1988confused,
+  title   = {The Confused Deputy: (or why capabilities might have been invented)},
+  author  = {Hardy, Norm},
+  journal = {ACM SIGOPS Operating Systems Review},
+  volume  = {22},
+  number  = {4},
+  pages   = {36--38},
+  year    = {1988}
+}
+
+% --- Mother paper (the team's own paper) — title/authors PDF-verified 2026-06-20 ---
+@misc{liu2026capabilityparadox,
+  title        = {The Capability Paradox: How Smarter Auditors Make Multi-Agent Systems Less Secure},
+  author       = {Liu, Qiqi and Holz, Thorsten and Ye, Shilin and Song, Runhan},
+  eprint       = {2605.17480},
+  archivePrefix= {arXiv},
+  year         = {2026}
+}
+
+% --- Cluster A: coverage-guided MAS fuzzing (reliability oracle) — the strongest incumbent ---
+@article{flare2026,
+  title        = {{FLARE}: Agentic Coverage-Guided Fuzzing for {LLM}-Based Multi-Agent Systems},
+  author       = {Hui, Mingxuan and Li, Xinyue and Wang, Lu and Wan, Chengcheng and others},
+  journal      = {arXiv preprint arXiv:2604.05289},
+  eprint       = {2604.05289},
+  archivePrefix= {arXiv},
+  year         = {2026},
+  month        = {4}
+}
+
+% --- Cluster B: security greybox fuzzing of agents (single-agent / multi-tool) ---
+@article{chainfuzzer2026,
+  title        = {{ChainFuzzer}: Greybox Fuzzing for Workflow-Level Multi-Tool Vulnerabilities in {LLM} Agents},
+  author       = {Wu, Jiangrong and Yao, Zitong and Nan, Yuhong and Zheng, Zibin},
+  journal      = {arXiv preprint arXiv:2603.12614},
+  eprint       = {2603.12614},
+  archivePrefix= {arXiv},
+  year         = {2026}
+}
+
+@inproceedings{agentvigil2025,
+  title        = {{AgentVigil}: Generic Black-Box Red-teaming for Indirect Prompt Injection against {LLM} Agents},
+  author       = {Nie, Yuzhou and others},
+  booktitle    = {Findings of the Association for Computational Linguistics: EMNLP},
+  eprint       = {2505.05849},
+  archivePrefix= {arXiv},
+  year         = {2025}
+}
+
+% --- Cluster C: multi-agent security as FIXED attacks/analyses ---
+@article{funcpoison2025,
+  title        = {{FuncPoison}: Poisoning Function Library to Hijack Multi-agent Autonomous Driving Systems},
+  author       = {Long, Yuzhen and Li, Songze},
+  journal      = {arXiv preprint arXiv:2509.24408},
+  eprint       = {2509.24408},
+  archivePrefix= {arXiv},
+  year         = {2025}
+}
+
+@inproceedings{toma2025,
+  title        = {Don't Trust Your Upstream: Exploiting {LLM} Multi-Agent System via Topology-Guided Adversarial Propagation},
+  author       = {Liang, Ruichao and Yin, Le and Chen, Jing and Feng, Yebo and Wu, Cong and Zhang, Xiaoyu and Gu, Huangpeng and Zhang, Zijian and Liu, Yang},
+  booktitle    = {Network and Distributed System Security Symposium (NDSS)},
+  eprint       = {2512.04129},
+  archivePrefix= {arXiv},
+  year         = {2026}
+}
+
+@article{agentsafe2025,
+  title        = {{AgentSafe}: Safeguarding Large Language Model-based Multi-agent Systems via Hierarchical Data Management},
+  author       = {Mao, Junyuan and Meng, Fanci and Duan, Yifan and Yu, Miao and Jia, Xiaojun and Fang, Junfeng and Liang, Yuxuan and Wang, Kun and Wen, Qingsong},
+  journal      = {arXiv preprint arXiv:2503.04392},
+  eprint       = {2503.04392},
+  archivePrefix= {arXiv},
+  year         = {2025}
+}
+
+% --- Cluster D: MAS-as-engine / agent-as-hardener (orthogonal, cited to forestall confusion) ---
+@article{malf2025,
+  title        = {{MALF}: A Multi-Agent {LLM} Framework for Intelligent Fuzzing of Industrial Control Protocols},
+  author       = {Ning and others},
+  journal      = {arXiv preprint arXiv:2510.02694},
+  eprint       = {2510.02694},
+  archivePrefix= {arXiv},
+  year         = {2025},
+  month        = {10}
+}
+
+@article{autosafecoder2024,
+  title        = {{AutoSafeCoder}: A Multi-Agent Framework for Securing {LLM} Code Generation},
+  author       = {Nunez and others},
+  journal      = {arXiv preprint arXiv:2409.10737},
+  eprint       = {2409.10737},
+  archivePrefix= {arXiv},
+  year         = {2024}
+}
+
+@article{lin2025hybridfuzz,
+  title        = {Hybrid Fuzzing with {LLM}-Guided Input Mutation and Semantic Feedback},
+  author       = {Lin, S.},
+  journal      = {arXiv preprint arXiv:2511.03995},
+  eprint       = {2511.03995},
+  archivePrefix= {arXiv},
+  year         = {2025},
+  month        = {11}
+}
+
+% --- Cluster E: quality-diversity / curiosity red-teaming (input-side descriptors, mostly single-model) ---
+@inproceedings{rainbow2024,
+  title        = {Rainbow Teaming: Open-Ended Generation of Diverse Adversarial Prompts},
+  author       = {Samvelyan, Mikayel and others},
+  booktitle    = {Advances in Neural Information Processing Systems (NeurIPS)},
+  eprint       = {2402.16822},
+  archivePrefix= {arXiv},
+  year         = {2024}
+}
+
+@misc{qdrt2025,
+  title        = {Quality-Diversity Red-Teaming: Automated Generation of High-Quality and Diverse Attackers for Large Language Models},
+  author       = {Wang, Ren-Jian and Xue, Ke and Qin, Zeyu and Li, Ziniu and Tang, Sheng and Li, Hao-Tian and Liu, Shengcai and Qian, Chao},
+  eprint       = {2506.07121},
+  archivePrefix= {arXiv},
+  year         = {2025}
+}
+
+@inproceedings{curiosity2024,
+  title        = {Curiosity-driven Red-teaming for Large Language Models},
+  author       = {Hong, Zhang-Wei and others},
+  booktitle    = {International Conference on Learning Representations (ICLR)},
+  eprint       = {2402.19464},
+  archivePrefix= {arXiv},
+  year         = {2024}
+}
+
+@misc{tmap2026,
+  title        = {{T-MAP}: Red-Teaming {LLM} Agents with Trajectory-aware Evolutionary Search},
+  author       = {Lee, Hyomin and Park, Sangwoo and Choi, Yumin and An, Sohyun and Lee, Seanie and Hwang, Sung Ju},
+  eprint       = {2603.22341},
+  archivePrefix= {arXiv},
+  year         = {2026}
+}
+
+@misc{autoqd2025,
+  title        = {{AutoQD}: Automatic Discovery of Diverse Behaviors with Quality-Diversity Optimization},
+  author       = {Hedayatian, Saeed and Nikolaidis, Stefanos},
+  eprint       = {2506.05634},
+  archivePrefix= {arXiv},
+  year         = {2025}
+}
+
+% --- Cluster F: MAS failure taxonomy + inter-agent / persuasion attacks ---
+@inproceedings{mast2025,
+  title        = {Why Do Multi-Agent {LLM} Systems Fail?},
+  author       = {Cemri, Mert and Pan, Melissa Z. and others},
+  booktitle    = {International Conference on Machine Learning (ICML)},
+  eprint       = {2503.13657},
+  archivePrefix= {arXiv},
+  year         = {2025}
+}
+
+@inproceedings{aitm2025,
+  title        = {Red-Teaming {LLM} Multi-Agent Systems via Communication Attacks},
+  author       = {He, Pengfei and Lin, Yupin and Dong, Shen and Xu, Han and Xing, Yue and Liu, Hui},
+  booktitle    = {Findings of the Association for Computational Linguistics: ACL},
+  eprint       = {2502.14847},
+  archivePrefix= {arXiv},
+  year         = {2025}
+}
+
+@misc{persuasion2026,
+  title        = {Understanding Persuasion in Long-Running Agents},
+  author       = {Jeong, Hyejun and Houmansadr, Amir and Zilberstein, Shlomo and Bagdasarian, Eugene},
+  eprint       = {2602.00851},
+  archivePrefix= {arXiv},
+  year         = {2026}
+}
+
+% --- Novelty-audit additions (all arXiv ids WebSearch-verified 2026-06-23; titles corrected) ---
+% Mediator/reward-as-fitness red-teaming (single-model) -- distinguishes our certainty-as-fitness
+@misc{ferret2024,
+  title  = {Ferret: Faster and Effective Automated Red Teaming with Reward-Based Scoring Technique},
+  author = {Pala, Tej Deep and others}, eprint = {2408.10701}, archivePrefix = {arXiv}, year = {2024}}
+@inproceedings{lee2025diverse,
+  title     = {Learning Diverse Attacks on Large Language Models for Robust Red-Teaming and Safety Tuning},
+  author    = {Lee, Seanie and others}, booktitle = {International Conference on Learning Representations (ICLR)},
+  eprint    = {2405.18540}, archivePrefix = {arXiv}, year = {2025}}
+@misc{trojail2025,
+  title  = {{TROJail}: Trajectory-Level Optimization for Multi-Turn Large Language Model Jailbreaks with Process Rewards},
+  author = {Xiong, Xiqiao and others}, eprint = {2512.07761}, archivePrefix = {arXiv}, year = {2025}}
+% Confidence/persuasion flips a verdict (observational) -- distinguishes our optimized certainty steering
+@misc{cwpor2025,
+  title  = {When Persuasion Overrides Truth in Multi-Agent {LLM} Debates: Introducing a Confidence-Weighted Persuasion Override Rate (CW-POR)},
+  author = {Agarwal, Mahak and others}, eprint = {2504.00374}, archivePrefix = {arXiv}, year = {2025}}
+@misc{sycophancyprop2026,
+  title  = {Too Polite to Disagree: Understanding Sycophancy Propagation in Multi-Agent Systems},
+  author = {Kasprova, Vira and others}, eprint = {2604.02668}, archivePrefix = {arXiv}, year = {2026}}
+@inproceedings{verbalconf2025,
+  title     = {On the Robustness of Verbal Confidence of {LLMs} in Adversarial Attacks},
+  author    = {Obadinma, Stephen and Zhu, Xiaodan}, booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  eprint    = {2507.06489}, archivePrefix = {arXiv}, year = {2025}}
+% Responsibility diffusion / overreliance / monitor bias -- distinguishes our measurable accountability sink
+@misc{naumov2025diffusion,
+  title  = {Diffusion of Responsibility in Collective Decision Making},
+  author = {Naumov, Pavel and Tao, Jia}, eprint = {2506.07935}, archivePrefix = {arXiv}, year = {2025}}
+@misc{hu2025responsibility,
+  title  = {Stop Reducing Responsibility in {LLM}-Powered Multi-Agent Systems to Local Alignment},
+  author = {Hu, Jinwei and others}, eprint = {2510.14008}, archivePrefix = {arXiv}, year = {2025}}
+@misc{khullar2026selfattr,
+  title  = {Self-Attribution Bias: When {AI} Monitors Go Easy on Themselves},
+  author = {Khullar, Dipika and others}, eprint = {2603.04582}, archivePrefix = {arXiv}, year = {2026}}
+@misc{ibrahim2026overreliance,
+  title  = {Measuring and Mitigating Overreliance Is Necessary for Building Human-Compatible {AI}},
+  author = {Ibrahim, Lujain and others}, eprint = {2509.08010}, archivePrefix = {arXiv}, year = {2026}}
+% MAS propagation/contagion attacks -- all optimize spread/path, not the upstream-certainty mediator
+@misc{promptinfection2024,
+  title  = {Prompt Infection: {LLM}-to-{LLM} Prompt Injection within Multi-Agent Systems},
+  author = {Lee, Donghyun and Tiwari, Mo}, eprint = {2410.07283}, archivePrefix = {arXiv}, year = {2024}}
+@misc{corba2025,
+  title  = {{CORBA}: Contagious Recursive Blocking Attacks on Multi-Agent Systems Based on Large Language Models},
+  author = {Zhou, Zhenhong and others}, eprint = {2502.14529}, archivePrefix = {arXiv}, year = {2025}}
+@inproceedings{agentsmith2024,
+  title     = {Agent Smith: A Single Image Can Jailbreak One Million Multimodal {LLM} Agents Exponentially Fast},
+  author    = {Gu, Xiangming and others}, booktitle = {International Conference on Machine Learning (ICML)},
+  eprint    = {2402.08567}, archivePrefix = {arXiv}, year = {2024}}
+@misc{ju2024flooding,
+  title  = {Flooding Spread of Manipulated Knowledge in {LLM}-Based Multi-Agent Communities},
+  author = {Ju, Tianjie and others}, eprint = {2407.07791}, archivePrefix = {arXiv}, year = {2024}}
+@inproceedings{agentpoison2024,
+  title     = {{AgentPoison}: Red-teaming {LLM} Agents via Poisoning Memory or Knowledge Bases},
+  author    = {Chen, Zhaorun and others}, booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  eprint    = {2407.12784}, archivePrefix = {arXiv}, year = {2024}}
+% LLM-judge attackability (motivates the independent non-LLM oracle)
+@inproceedings{judgedeceiver2024,
+  title     = {Optimization-based Prompt Injection Attack to {LLM}-as-a-Judge},
+  author    = {Shi, Jiawen and others}, booktitle = {ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  eprint    = {2403.17710}, archivePrefix = {arXiv}, year = {2024}}
+% MAS defenses (crowded space; our decider-side skepticism is a minimal mechanism-targeted instance)
+@inproceedings{gsafeguard2025,
+  title     = {{G-Safeguard}: A Topology-Guided Security Lens and Treatment on {LLM}-based Multi-Agent Systems},
+  author    = {Wang, Shilong and others}, booktitle = {Annual Meeting of the Association for Computational Linguistics (ACL)},
+  eprint    = {2502.11127}, archivePrefix = {arXiv}, year = {2025}}
+% Real agentic-app prompt-injection eval environment (external-validity context)
+@inproceedings{agentdojo2024,
+  title     = {{AgentDojo}: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for {LLM} Agents},
+  author    = {Debenedetti, Edoardo and others}, booktitle = {Advances in Neural Information Processing Systems (NeurIPS) Datasets and Benchmarks},
+  eprint    = {2406.13352}, archivePrefix = {arXiv}, year = {2024}}

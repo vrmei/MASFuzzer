@@ -1,0 +1,195 @@
+\begin{thebibliography}{31}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Agarwal et~al.(2025)}]{cwpor2025}
+Agarwal, M.; et~al. 2025.
+\newblock When Persuasion Overrides Truth in Multi-Agent {LLM} Debates:
+  Introducing a Confidence-Weighted Persuasion Override Rate (CW-POR).
+\newblock arXiv:2504.00374.
+
+\bibitem[{Cemri, Pan et~al.(2025)}]{mast2025}
+Cemri, M.; Pan, M.~Z.; et~al. 2025.
+\newblock Why Do Multi-Agent {LLM} Systems Fail?
+\newblock In \emph{International Conference on Machine Learning (ICML)}.
+
+\bibitem[{Chen et~al.(2024)}]{agentpoison2024}
+Chen, Z.; et~al. 2024.
+\newblock {AgentPoison}: Red-teaming {LLM} Agents via Poisoning Memory or
+  Knowledge Bases.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}.
+
+\bibitem[{Debenedetti et~al.(2024)}]{agentdojo2024}
+Debenedetti, E.; et~al. 2024.
+\newblock {AgentDojo}: A Dynamic Environment to Evaluate Prompt Injection
+  Attacks and Defenses for {LLM} Agents.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)
+  Datasets and Benchmarks}.
+
+\bibitem[{Gu et~al.(2024)}]{agentsmith2024}
+Gu, X.; et~al. 2024.
+\newblock Agent Smith: A Single Image Can Jailbreak One Million Multimodal
+  {LLM} Agents Exponentially Fast.
+\newblock In \emph{International Conference on Machine Learning (ICML)}.
+
+\bibitem[{Hardy(1988)}]{hardy1988confused}
+Hardy, N. 1988.
+\newblock The Confused Deputy: (or why capabilities might have been invented).
+\newblock \emph{ACM SIGOPS Operating Systems Review}, 22(4): 36--38.
+
+\bibitem[{He et~al.(2025)He, Lin, Dong, Xu, Xing, and Liu}]{aitm2025}
+He, P.; Lin, Y.; Dong, S.; Xu, H.; Xing, Y.; and Liu, H. 2025.
+\newblock Red-Teaming {LLM} Multi-Agent Systems via Communication Attacks.
+\newblock In \emph{Findings of the Association for Computational Linguistics:
+  ACL}.
+
+\bibitem[{Hedayatian and Nikolaidis(2025)}]{autoqd2025}
+Hedayatian, S.; and Nikolaidis, S. 2025.
+\newblock {AutoQD}: Automatic Discovery of Diverse Behaviors with
+  Quality-Diversity Optimization.
+\newblock arXiv:2506.05634.
+
+\bibitem[{Hong et~al.(2024)}]{curiosity2024}
+Hong, Z.-W.; et~al. 2024.
+\newblock Curiosity-driven Red-teaming for Large Language Models.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}.
+
+\bibitem[{Hu et~al.(2025)}]{hu2025responsibility}
+Hu, J.; et~al. 2025.
+\newblock Stop Reducing Responsibility in {LLM}-Powered Multi-Agent Systems to
+  Local Alignment.
+\newblock arXiv:2510.14008.
+
+\bibitem[{Hui et~al.(2026)Hui, Li, Wang, Wan et~al.}]{flare2026}
+Hui, M.; Li, X.; Wang, L.; Wan, C.; et~al. 2026.
+\newblock {FLARE}: Agentic Coverage-Guided Fuzzing for {LLM}-Based Multi-Agent
+  Systems.
+\newblock \emph{arXiv preprint arXiv:2604.05289}.
+
+\bibitem[{Ibrahim et~al.(2026)}]{ibrahim2026overreliance}
+Ibrahim, L.; et~al. 2026.
+\newblock Measuring and Mitigating Overreliance Is Necessary for Building
+  Human-Compatible {AI}.
+\newblock arXiv:2509.08010.
+
+\bibitem[{Ju et~al.(2024)}]{ju2024flooding}
+Ju, T.; et~al. 2024.
+\newblock Flooding Spread of Manipulated Knowledge in {LLM}-Based Multi-Agent
+  Communities.
+\newblock arXiv:2407.07791.
+
+\bibitem[{Kasprova et~al.(2026)}]{sycophancyprop2026}
+Kasprova, V.; et~al. 2026.
+\newblock Too Polite to Disagree: Understanding Sycophancy Propagation in
+  Multi-Agent Systems.
+\newblock arXiv:2604.02668.
+
+\bibitem[{Khullar et~al.(2026)}]{khullar2026selfattr}
+Khullar, D.; et~al. 2026.
+\newblock Self-Attribution Bias: When {AI} Monitors Go Easy on Themselves.
+\newblock arXiv:2603.04582.
+
+\bibitem[{Lee and Tiwari(2024)}]{promptinfection2024}
+Lee, D.; and Tiwari, M. 2024.
+\newblock Prompt Infection: {LLM}-to-{LLM} Prompt Injection within Multi-Agent
+  Systems.
+\newblock arXiv:2410.07283.
+
+\bibitem[{Lee et~al.(2026)Lee, Park, Choi, An, Lee, and Hwang}]{tmap2026}
+Lee, H.; Park, S.; Choi, Y.; An, S.; Lee, S.; and Hwang, S.~J. 2026.
+\newblock {T-MAP}: Red-Teaming {LLM} Agents with Trajectory-aware Evolutionary
+  Search.
+\newblock arXiv:2603.22341.
+
+\bibitem[{Lee et~al.(2025)}]{lee2025diverse}
+Lee, S.; et~al. 2025.
+\newblock Learning Diverse Attacks on Large Language Models for Robust
+  Red-Teaming and Safety Tuning.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}.
+
+\bibitem[{Liang et~al.(2026)Liang, Yin, Chen, Feng, Wu, Zhang, Gu, Zhang, and
+  Liu}]{toma2025}
+Liang, R.; Yin, L.; Chen, J.; Feng, Y.; Wu, C.; Zhang, X.; Gu, H.; Zhang, Z.;
+  and Liu, Y. 2026.
+\newblock Don't Trust Your Upstream: Exploiting {LLM} Multi-Agent System via
+  Topology-Guided Adversarial Propagation.
+\newblock In \emph{Network and Distributed System Security Symposium (NDSS)}.
+
+\bibitem[{Liu et~al.(2026)Liu, Holz, Ye, and Song}]{liu2026capabilityparadox}
+Liu, Q.; Holz, T.; Ye, S.; and Song, R. 2026.
+\newblock The Capability Paradox: How Smarter Auditors Make Multi-Agent Systems
+  Less Secure.
+\newblock arXiv:2605.17480.
+
+\bibitem[{Naumov and Tao(2025)}]{naumov2025diffusion}
+Naumov, P.; and Tao, J. 2025.
+\newblock Diffusion of Responsibility in Collective Decision Making.
+\newblock arXiv:2506.07935.
+
+\bibitem[{Nie et~al.(2025)}]{agentvigil2025}
+Nie, Y.; et~al. 2025.
+\newblock {AgentVigil}: Generic Black-Box Red-teaming for Indirect Prompt
+  Injection against {LLM} Agents.
+\newblock In \emph{Findings of the Association for Computational Linguistics:
+  EMNLP}.
+
+\bibitem[{Obadinma and Zhu(2025)}]{verbalconf2025}
+Obadinma, S.; and Zhu, X. 2025.
+\newblock On the Robustness of Verbal Confidence of {LLMs} in Adversarial
+  Attacks.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}.
+
+\bibitem[{Pala et~al.(2024)}]{ferret2024}
+Pala, T.~D.; et~al. 2024.
+\newblock Ferret: Faster and Effective Automated Red Teaming with Reward-Based
+  Scoring Technique.
+\newblock arXiv:2408.10701.
+
+\bibitem[{Saltzer and Schroeder(1975)}]{saltzer1975protection}
+Saltzer, J.~H.; and Schroeder, M.~D. 1975.
+\newblock The Protection of Information in Computer Systems.
+\newblock \emph{Proceedings of the IEEE}, 63(9): 1278--1308.
+
+\bibitem[{Samvelyan et~al.(2024)}]{rainbow2024}
+Samvelyan, M.; et~al. 2024.
+\newblock Rainbow Teaming: Open-Ended Generation of Diverse Adversarial
+  Prompts.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}.
+
+\bibitem[{Shi et~al.(2024)}]{judgedeceiver2024}
+Shi, J.; et~al. 2024.
+\newblock Optimization-based Prompt Injection Attack to {LLM}-as-a-Judge.
+\newblock In \emph{ACM SIGSAC Conference on Computer and Communications
+  Security (CCS)}.
+
+\bibitem[{Wang et~al.(2025)Wang, Xue, Qin, Li, Tang, Li, Liu, and
+  Qian}]{qdrt2025}
+Wang, R.-J.; Xue, K.; Qin, Z.; Li, Z.; Tang, S.; Li, H.-T.; Liu, S.; and Qian,
+  C. 2025.
+\newblock Quality-Diversity Red-Teaming: Automated Generation of High-Quality
+  and Diverse Attackers for Large Language Models.
+\newblock arXiv:2506.07121.
+
+\bibitem[{Wu et~al.(2026)Wu, Yao, Nan, and Zheng}]{chainfuzzer2026}
+Wu, J.; Yao, Z.; Nan, Y.; and Zheng, Z. 2026.
+\newblock {ChainFuzzer}: Greybox Fuzzing for Workflow-Level Multi-Tool
+  Vulnerabilities in {LLM} Agents.
+\newblock \emph{arXiv preprint arXiv:2603.12614}.
+
+\bibitem[{Xiong et~al.(2025)}]{trojail2025}
+Xiong, X.; et~al. 2025.
+\newblock {TROJail}: Trajectory-Level Optimization for Multi-Turn Large
+  Language Model Jailbreaks with Process Rewards.
+\newblock arXiv:2512.07761.
+
+\bibitem[{Zhou et~al.(2025)}]{corba2025}
+Zhou, Z.; et~al. 2025.
+\newblock {CORBA}: Contagious Recursive Blocking Attacks on Multi-Agent Systems
+  Based on Large Language Models.
+\newblock arXiv:2502.14529.
+
+\end{thebibliography}
