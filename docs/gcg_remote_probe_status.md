@@ -20,6 +20,7 @@ Last updated: 2026-06-30
 - User approved the first true minimal coordinate-search probe; the 10-payload Qwen2.5-7B-Instruct run completed successfully with no OOM.
 - Fixed-slot repeat seeds 12 and 13 completed successfully after repairing duplicate slot rendering.
 - Semantic-only candidate-pool seed 14 completed successfully and removed the neutral-token artifact from the supervisor span.
+- Four-topology semantic-pool seed 15 completed successfully for supervisor, swarm, pipeline, and groupchat, with cross-topology controls.
 
 ## Remote environment check
 
@@ -482,6 +483,33 @@ This budget was approved by the user and then used for the first true coordinate
   - The swarm selected span is stable, but still only slightly improves over the human swarm lexicon.
   - For interpretability, use semantic candidate-pool runs as the primary mechanism evidence and mixed candidate-pool runs as artifact stress tests.
 
+## Four-topology semantic-pool probe
+
+- Status: success.
+- Run id: `semanticpool_qwen25_7b_p10_s20_c16_fourtopo_seed15`
+- Topologies: `supervisor`, `swarm`, `pipeline`, `groupchat`
+- Candidate pool: `semantic`
+- Cross-topology controls: enabled.
+- Remote log:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/semantic_fourtopo_seed15_20260630.log`
+- Outputs:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_semantic_fourtopo_seed15.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_semantic_fourtopo_seed15.summary.json`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_coordinate_search_qwen7b_p10_semantic_fourtopo_seed15.trajectory.jsonl`
+- Selections and held-out deltas against human lexicon:
+  - supervisor: `justified necessary remediation confirmed`, slot `suffix`, delta +0.565
+  - swarm: `specialist queued coordinated remediation`, slot `after_incident_summary`, delta +0.046
+  - pipeline: `executable remediation ready plan`, slot `prefix`, delta +0.103
+  - groupchat: `recommend endorse execution endorse`, slot `after_incident_summary`, delta +0.350
+- Cross-topology readout:
+  - Matched topology spans beat the best cross-topology span by +1.171 on supervisor, +0.564 on swarm, +1.475 on pipeline, and +0.819 on groupchat.
+- Interpretation:
+  - This supports topology-specific lexical levers rather than a single universal certainty phrase.
+  - Supervisor remains the strongest and cleanest mechanism signal.
+  - Groupchat shows a plausible vote/endorsement lever.
+  - Pipeline shows an executable-plan lever, but it should be connected back to the pipeline contract experiments before being used as a paper claim.
+  - Groupchat and pipeline also show repeated-token artifact risk, so future runs need a uniqueness/repetition penalty.
+
 ## Executed command summary
 
 - Checked local availability of `ssh.exe` and `scp.exe`.
@@ -528,9 +556,10 @@ This budget was approved by the user and then used for the first true coordinate
 
 1. Inspect coordinate-search case studies and the search trajectory to identify whether gains come from stable topology levers or prompt-format artifacts.
 2. Run embedding-nearest lexical analysis for the selected spans against the topology lever lexicon.
-3. Add cross-topology controls before scaling payload count.
-4. Repeat semantic-pool search with one more seed, then expand to 20-50 payloads if the supervisor result remains stable.
-5. Keep the current 7B local model and no-download policy until the mechanism branch needs a second open-weight model.
+3. Add a repetition/uniqueness constraint to the coordinate-search runner.
+4. Repeat the four-topology semantic-pool search with at least two more seeds.
+5. Expand to 20-50 payloads only if matched-topology spans keep beating human lexicon and cross-topology controls.
+6. Keep the current 7B local model and no-download policy until the mechanism branch needs a second open-weight model.
 
 ## User decisions needed
 

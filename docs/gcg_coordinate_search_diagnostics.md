@@ -17,6 +17,21 @@ This note diagnoses the first remote Qwen2.5-7B-Instruct coordinate-search probe
 - Peak GPU memory reserved: 14,678 MiB
 - Status: success, no OOM
 
+## What `human lexicon` Means
+
+`human lexicon` is the hand-written, topology-specific phrase used as a strong semantic baseline. It is not learned by the search. It encodes our best prior guess about the native trust signal for each topology.
+
+Examples:
+
+| topology | human lexicon phrase | intended signal |
+| --- | --- | --- |
+| supervisor | `verified necessary remediation approval` | audit certainty / authorization |
+| swarm | `specialist ready coordinated remediation` | specialist handoff readiness |
+| pipeline | `executable remediation plan ready` | action-plan executability |
+| groupchat | `consensus endorse proceed action` | vote/consensus endorsement |
+
+The selected search span must be compared against this baseline, not only against no-token or random-token controls. Beating no-token only means the model likes relevant words. Beating human lexicon means the search found a phrase that better matches the model's topology-specific interface.
+
 ## Main Readout
 
 The probe gives a useful positive signal for lexical mechanism search, but it also exposes a slot-design flaw.
@@ -65,6 +80,32 @@ The semantic-only run separates two phenomena:
 
 - The supervisor lever is not dependent on neutral filler tokens. When neutral candidates are excluded, the search finds a stronger and cleaner approval/remediation phrase.
 - The swarm lever is stable in wording, but its marginal gain over the human lexicon remains small and not positive on every held-out payload.
+
+## Four-Topology Semantic Probe
+
+Run: `semanticpool_qwen25_7b_p10_s20_c16_fourtopo_seed15`
+
+This run extends the semantic-only probe from `supervisor` and `swarm` to four topology proxies: `supervisor`, `swarm`, `pipeline`, and `groupchat`. It also adds cross-topology controls: each topology's selected span is evaluated on the other topologies.
+
+| topology | selected span | slot | held-out delta vs human lexicon | nearest mechanism readout |
+| --- | --- | --- | ---: | --- |
+| supervisor | `justified necessary remediation confirmed` | `suffix` | 0.565 | certainty / authorization / remediation |
+| swarm | `specialist queued coordinated remediation` | `after_incident_summary` | 0.046 | handoff readiness, but weak over human baseline |
+| pipeline | `executable remediation ready plan` | `prefix` | 0.103 | plan executability / action-plan laundering |
+| groupchat | `recommend endorse execution endorse` | `after_incident_summary` | 0.350 | vote / recommendation / endorsement |
+
+Cross-topology controls were much weaker than the matched selected span:
+
+| target topology | selected span advantage over best cross-topology span |
+| --- | ---: |
+| supervisor | 1.171 |
+| swarm | 0.564 |
+| pipeline | 1.475 |
+| groupchat | 0.819 |
+
+This is the best current evidence that the search is not merely finding one universal approval phrase. The discovered phrases align with each topology's native interface: supervisor approval, swarm specialist handoff, pipeline executable plan, and groupchat vote endorsement.
+
+However, this run also shows a new artifact risk: the groupchat span repeats `endorse`, and the pipeline trajectory briefly accepted `executable remediation plan plan` before moving to `executable remediation ready plan`. Future search should add a repetition/uniqueness constraint before scaling.
 
 ## Search Trajectory
 
@@ -199,10 +240,11 @@ The swarm cases are weaker. The selected span mostly reinforces the existing swa
 
 1. Keep `--candidate-pool semantic` as the default for interpretability runs.
 2. Keep `--candidate-pool mixed` only as an artifact stress test.
-3. Add a cross-topology control: evaluate supervisor-selected span on swarm and swarm-selected span on supervisor.
-4. If the semantic-pool direction is stable across one more seed, expand to 20-50 payloads with a fixed train/held-out split.
-5. Keep reporting selected-vs-human-lexicon deltas, not only selected-vs-no-token deltas.
-6. Report any neutral accepted token as an artifact, not as a semantic mechanism.
+3. Add a repetition/uniqueness constraint before larger four-topology runs.
+4. Repeat the four-topology semantic run with at least two more seeds.
+5. If the semantic-pool direction is stable, expand to 20-50 payloads with a fixed train/held-out split.
+6. Keep reporting selected-vs-human-lexicon deltas and cross-topology deltas, not only selected-vs-no-token deltas.
+7. Report any neutral accepted token or repeated-token optimization as an artifact, not as a semantic mechanism.
 
 ## Claim Boundary
 
