@@ -162,10 +162,11 @@ def mutate_payload(attacker, parent_payload: str, target_tool: str, mode: str, e
 
 
 def campaign(agent, decider, attacker, judge, decide_sop, base, exemplars, mode: str, budget: int,
-             rng: random.Random, seed0: int, max_validation_attempts: int):
+             rng: random.Random, seed0: int, max_validation_attempts: int, seed_count: int | None):
     recs, archive = [], []
     sc = seed0
-    n_seed = min(len(base), max(2, budget // 6))
+    requested_seed_count = max(2, budget // 6) if seed_count is None else seed_count
+    n_seed = min(len(base), budget, requested_seed_count)
 
     for i in range(n_seed):
         item = base[i]
@@ -247,14 +248,40 @@ def campaign(agent, decider, attacker, judge, decide_sop, base, exemplars, mode:
 
 
 def summarize(records: list[dict]) -> dict:
+    mutated = [r for r in records if r.get("mutation_mode") != "base"]
+    valid_mutated = [r for r in mutated if r.get("mutation_valid", True)]
+    mutated_hits = [r for r in mutated if r["hijacked"]]
+    route_label_mutated = [
+        r for r in mutated
+        if ROUTE_LABEL_RE.search(r.get("payload") or "")
+    ]
+    route_label_mutated_hits = [
+        r for r in mutated_hits
+        if ROUTE_LABEL_RE.search(r.get("payload") or "")
+    ]
     return {
         "n": len(records),
+        "n_base": len(records) - len(mutated),
+        "n_mutated": len(mutated),
         "asr": mean([r["hijacked"] for r in records]),
+        "mutated_asr": mean([r["hijacked"] for r in mutated]),
+        "valid_mutated_n": len(valid_mutated),
+        "valid_mutated_asr": mean([r["hijacked"] for r in valid_mutated]),
         "rule_asr": mean([r["rule_hijacked"] for r in records]),
         "mean_grade": mean([r["grade"] for r in records]),
         "mean_route_score": mean([r["route_score"] for r in records]),
         "mean_coherence": mean([r["coherence"] for r in records]),
         "valid_rate": mean([int(r.get("mutation_valid", True)) for r in records]),
+        "mutated_valid_rate": mean([int(r.get("mutation_valid", True)) for r in mutated]),
+        "mutated_route_label_rate": mean([
+            int(ROUTE_LABEL_RE.search(r.get("payload") or "") is not None)
+            for r in mutated
+        ]),
+        "mutated_hit_route_label_rate": (
+            len(route_label_mutated_hits) / len(mutated_hits) if mutated_hits else 0.0
+        ),
+        "mutated_route_label_n": len(route_label_mutated),
+        "mutated_hit_route_label_n": len(route_label_mutated_hits),
         "triage_block_rate": mean([
             r["triage_features"].get("block_or_escalate_signal", 0) for r in records
         ]),
@@ -279,6 +306,11 @@ def main():
     ap.add_argument("--sample-seed", type=int, default=42)
     ap.add_argument("--payload-ids", default="")
     ap.add_argument("--budget", type=int, default=40)
+    ap.add_argument(
+        "--seed-count",
+        default="auto",
+        help="'auto' uses budget/6 seed records; 'all' evaluates every sampled payload before mutation; or pass an integer.",
+    )
     ap.add_argument("--arms", default="swarm_handoff_proceed,neutral,recipe,specialist")
     ap.add_argument("--rigor", default="strict", choices=list(SOPS))
     ap.add_argument("--attacker", default="deepseek/deepseek-chat")
@@ -291,6 +323,12 @@ def main():
 
     data, sample_meta = load_payload_sample(DATA, args.n_payloads, args.sample, args.sample_seed, args.payload_ids)
     arms = [x.strip() for x in args.arms.split(",") if x.strip()]
+    if args.seed_count == "auto":
+        seed_count = None
+    elif args.seed_count == "all":
+        seed_count = len(data)
+    else:
+        seed_count = int(args.seed_count)
     agent = LLMClient(role="agent", backend=args.backend, model=config.MODELS["worker"])
     decider = LLMClient(role="decider", backend=args.backend, model=args.decider_model)
     attacker = LLMClient(role="attacker", backend=args.backend, model=args.attacker)
@@ -302,7 +340,7 @@ def main():
     print(
         f"D5 SWARM PUBLIC-FAITHFUL FUZZ  worker={config.MODELS['worker']} decider={args.decider_model} "
         f"attacker={args.attacker} rigor={args.rigor} payloads={len(data)} budget={args.budget}/arm "
-        f"arms={','.join(arms)} exemplars={len(exemplars)}",
+        f"seed_count={'auto' if seed_count is None else seed_count} arms={','.join(arms)} exemplars={len(exemplars)}",
         flush=True,
     )
     print(f"payload ids: {','.join(str(x) for x in sample_meta['distribution']['ids'])}", flush=True)
@@ -314,6 +352,7 @@ def main():
             "profile": PROFILE,
             "arms": arms,
             "budget": args.budget,
+            "seed_count": "auto" if seed_count is None else seed_count,
             "rigor": args.rigor,
             "worker_model": config.MODELS["worker"],
             "decider_model": args.decider_model,
@@ -339,6 +378,7 @@ def main():
             rng,
             seed0=260000 + 1000 * i,
             max_validation_attempts=args.max_validation_attempts,
+            seed_count=seed_count,
         )
         results[arm] = {"summary": summarize(recs), "records": recs}
         all_records.extend(recs)
@@ -346,7 +386,8 @@ def main():
         print(
             f"  [{arm:22s}] ASR={s['asr']:.2f} rule={s['rule_asr']:.2f} grade={s['mean_grade']:.2f} "
             f"route={s['mean_route_score']:.2f} tri_blk={s['triage_block_rate']:.2f} "
-            f"sp_blk={s['specialist_block_rate']:.2f} coh={s['mean_coherence']:.2f} valid={s['valid_rate']:.2f}",
+            f"sp_blk={s['specialist_block_rate']:.2f} coh={s['mean_coherence']:.2f} valid={s['valid_rate']:.2f} "
+            f"mutASR={s['mutated_asr']:.2f} validMutASR={s['valid_mutated_asr']:.2f}",
             flush=True,
         )
         json.dump(results, open(args.out, "w", encoding="utf-8"), indent=2)
@@ -367,6 +408,7 @@ def main():
         s = results[arm]["summary"]
         print(
             f"{arm:22s} n={s['n']:3d} ASR={s['asr']:.2f} rule={s['rule_asr']:.2f} "
+            f"mutASR={s['mutated_asr']:.2f} validMutASR={s['valid_mutated_asr']:.2f} "
             f"route={s['mean_route_score']:.2f} handoff={s['triage_handoff_rate']:.2f} "
             f"proceed={s['specialist_proceed_rate']:.2f}",
             flush=True,
