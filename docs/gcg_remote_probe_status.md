@@ -14,6 +14,8 @@ Last updated: 2026-06-30
 - Clean remote Python environment is complete and CUDA/PyTorch works.
 - Minimal smoke script skeleton is implemented and pushed.
 - Remote dry-run/mock sanity check completed successfully without downloading model weights.
+- Remote local-model cache search completed successfully.
+- A local existing instruct model was found and used for a 1-payload real logprob sanity check without downloading new weights.
 
 ## Remote environment check
 
@@ -131,11 +133,66 @@ Last updated: 2026-06-30
   - 3B only if download speed and disk headroom are acceptable.
   - 7B should wait for user approval because remaining disk headroom is about 54 GiB and the branch should not burn large GPU/model-download budget yet.
 
+## Local model cache search
+
+- Search log: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/model_cache_search_20260630_224221.log`
+- Inventory file: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/model_cache_inventory.json`
+- Roots searched:
+  - `/root/autodl-tmp`
+  - `/autodl-pub`
+  - `/root/.cache/huggingface`
+  - `/root/.cache/modelscope`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630`
+  - `/root/.cache/huggingface/hub`
+  - `/root/.cache`
+- File types searched included `config.json`, `generation_config.json`, tokenizer files, `*.safetensors`, and `pytorch_model*.bin`.
+- Result: 179 matching model/cache files and 20 candidate model directories.
+- Complete local candidate directories found:
+  - `/root/autodl-tmp/models/Qwen2.5-1.5B-Instruct`
+    - complete: yes
+    - model type: `qwen2`
+    - architecture: `Qwen2ForCausalLM`
+    - weight size: about 2.875 GiB
+    - selected for first real sanity because it is the smallest complete instruct/chat candidate.
+  - `/root/autodl-tmp/models/DeepSeek-R1-Distill-Qwen-1.5B`
+    - complete: yes
+    - model type: `qwen2`
+    - architecture: `Qwen2ForCausalLM`
+    - weight size: about 3.310 GiB
+  - `/root/autodl-tmp/models/Qwen2.5-7B-Instruct`
+    - complete: yes
+    - model type: `qwen2`
+    - architecture: `Qwen2ForCausalLM`
+    - weight size: about 14.185 GiB
+  - `/root/autodl-tmp/models/DeepSeek-R1-Distill-Qwen-7B`
+    - complete: yes
+    - model type: `qwen2`
+    - architecture: `Qwen2ForCausalLM`
+    - weight size: about 14.185 GiB
+- Other larger complete local models were also present, including Llama/Granite/GLM/Phi/Qwen 8B-14B+ directories, but they are outside the requested initial 0.5B-7B smoke priority.
+- Incomplete relevant cache:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/hf_home/models--Qwen--Qwen2.5-0.5B-Instruct/...`
+  - status: config-only from the previous small metadata probe; no local weights.
+
+## Local candidate validation
+
+- Validation log: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/model_candidate_validate_20260630_224302.log`
+- Validation output: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/model_candidate_validation.json`
+- Method: `AutoConfig.from_pretrained(..., local_files_only=True)` and `AutoTokenizer.from_pretrained(..., local_files_only=True)` with `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1`.
+- Validation passed for:
+  - `/root/autodl-tmp/models/Qwen2.5-1.5B-Instruct`
+  - `/root/autodl-tmp/models/DeepSeek-R1-Distill-Qwen-1.5B`
+  - `/root/autodl-tmp/models/Qwen2.5-7B-Instruct`
+  - `/root/autodl-tmp/models/DeepSeek-R1-Distill-Qwen-7B`
+- All four validated candidates expose a tokenizer chat template.
+
 ## Smoke script and dry-run
 
 - Script: `scripts/gcg_position_free_smoke.py`
 - Default mode: `--mode dry-run`
 - Real-model entry point: `--mode real --model Qwen/Qwen2.5-0.5B-Instruct`
+- No-download real-model entry point: add `--local-files-only` and pass a local model directory.
+- Latest script sync log: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/sync_local_files_only_script_20260630_224534.log`
 - Topologies implemented for smoke:
   - `supervisor`
   - `swarm`
@@ -169,6 +226,35 @@ Last updated: 2026-06-30
   - No GPU-heavy workload
   - Sanity passed
 
+## Real logprob sanity
+
+- Model used: `/root/autodl-tmp/models/Qwen2.5-1.5B-Instruct`
+- Reason selected: smallest complete local instruct/chat model found in the remote filesystem search.
+- No new model weights were downloaded.
+- Offline guards used: `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, local model path.
+- Log: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/real_logprob_sanity_20260630_224338.log`
+- Outputs:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_position_free_real_qwen15b_p1.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_position_free_real_qwen15b_p1.summary.json`
+- Command shape:
+  - `python scripts/gcg_position_free_smoke.py --mode real --model /root/autodl-tmp/models/Qwen2.5-1.5B-Instruct --payload-limit 1 --topologies supervisor swarm --span-length 4 --out ...`
+- Result:
+  - 1 payload
+  - supervisor + swarm
+  - 28 scored rows
+  - Qwen2.5-1.5B weights loaded successfully on the V100S.
+  - GPU memory was back to 0 MiB used after process exit.
+- Summary means from the real logprob sanity:
+  - supervisor/no-token: -6.718
+  - supervisor/random-token: -6.579
+  - supervisor/candidate: -5.900
+  - supervisor/human-lexicon phrase: -5.900
+  - swarm/no-token: -6.594
+  - swarm/random-token: -6.422
+  - swarm/candidate: -6.132
+  - swarm/human-lexicon phrase: -5.458
+- Interpretation: the pipeline can run a real local-model upstream-interface logprob objective. The current one-payload sanity is only a plumbing check, not evidence of held-out transfer or a paper-grade mechanism.
+
 ## Executed command summary
 
 - Checked local availability of `ssh.exe` and `scp.exe`.
@@ -196,16 +282,21 @@ Last updated: 2026-06-30
 - Ran a local dry-run syntax/smoke check.
 - SFTP-synced the script to the remote snapshot.
 - Ran a remote 2-payload dry-run/mock sanity check and wrote JSONL + summary outputs under the remote experiment base.
+- Searched remote model caches and local model directories before downloading any new weights.
+- Validated complete local Qwen-family instruct/chat candidates with `local_files_only=True`.
+- Ran a 1-payload real logprob sanity using the existing local `Qwen2.5-1.5B-Instruct` directory.
+- Added a `--local-files-only` option to `scripts/gcg_position_free_smoke.py` for future no-download real runs.
+- SFTP-synced the updated script to the remote snapshot and verified the new option with `--help`.
 
 ## Immediate execution plan
 
-1. Wait for user approval before downloading model weights or running a real 0.5B sanity check.
-2. If approved, run only `Qwen/Qwen2.5-0.5B-Instruct` through `hf-mirror.com` on 1-2 payloads first.
-3. If the 0.5B real sanity check works, expand to 10-20 payloads and held-out transfer.
-4. Do not start a large GCG search until the user approves scaling beyond the tiny smoke.
+1. Do not download Qwen 0.5B weights; a complete local Qwen2.5-1.5B-Instruct model already exists and works for real sanity.
+2. If approved, expand the local Qwen2.5-1.5B-Instruct sanity from 1 payload to 10-20 payloads with held-out transfer bookkeeping.
+3. Add true GCG token-span optimization only after the interface-score plumbing and held-out split are locked.
+4. Do not start 7B or full GCG search until the user approves scaling.
 
 ## User decisions needed
 
 - No HuggingFace token is needed for the proposed first smoke model if `hf-mirror.com` remains usable.
-- User approval is needed before downloading any model weights for a real sanity check.
+- No download is needed for the next Qwen2.5-1.5B step because the model already exists locally.
 - User approval is definitely needed before running 3B/7B models or a full GCG search.

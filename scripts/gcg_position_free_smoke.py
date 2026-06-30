@@ -148,16 +148,20 @@ def dry_score(topology: str, inserted_payload: str) -> float:
 
 
 class RealScorer:
-    def __init__(self, model_name: str, device: str) -> None:
+    def __init__(self, model_name: str, device: str, local_files_only: bool) -> None:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         self.torch = torch
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name,
+            local_files_only=local_files_only,
+        )
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
             torch_dtype=torch.float16,
             device_map=device,
+            local_files_only=local_files_only,
         )
         self.model.eval()
 
@@ -241,6 +245,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--candidate-span", default="verified necessary remediation approval")
     parser.add_argument("--model", default="Qwen/Qwen2.5-0.5B-Instruct")
     parser.add_argument("--device", default="auto")
+    parser.add_argument("--local-files-only", action="store_true")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--out", default="scratch/gcg_position_free_smoke.jsonl")
     return parser.parse_args()
@@ -259,7 +264,11 @@ def main() -> int:
 
     rng = random.Random(args.seed)
     payloads = load_payloads(Path(args.payload_file), args.payload_limit)
-    scorer = RealScorer(args.model, args.device) if args.mode == "real" else None
+    scorer = (
+        RealScorer(args.model, args.device, args.local_files_only)
+        if args.mode == "real"
+        else None
+    )
 
     rows: list[dict] = []
     for case in iter_cases(payloads, args.topologies, args.slots, rng, args.candidate_span):
