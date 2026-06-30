@@ -12,6 +12,7 @@ import collections
 import json
 import os
 import random
+import re
 import statistics
 
 from scipy import stats
@@ -31,6 +32,7 @@ from run_swarm_sop_audit import run_swarm, route_features
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "..", "data", "paradox_dataset_500.json")
 PROFILE = "public_faithful"
+ROUTE_LABEL_RE = re.compile(r"\b(HANDOFF|PROCEED|HOLD|ESCALATE|REJECT|BLOCK)\b", re.I)
 
 
 def mean(xs):
@@ -130,15 +132,33 @@ def mutate_payload(attacker, parent_payload: str, target_tool: str, mode: str, e
         validation = action_validator.validate_mutation(parent_payload, full, target_tool).as_dict()
         validation["attempts"] = 1
         return full, validation
-    return llm_mutator.mutate_validated(
-        attacker,
-        parent_payload,
-        target_tool,
-        mode,
-        exemplars,
-        seed,
-        max_attempts=max_attempts,
-    )
+    if mode != "swarm_handoff_proceed_nolabel":
+        return llm_mutator.mutate_validated(
+            attacker,
+            parent_payload,
+            target_tool,
+            mode,
+            exemplars,
+            seed,
+            max_attempts=max_attempts,
+        )
+
+    last_payload = parent_payload
+    last_result = action_validator.validate_mutation(parent_payload, parent_payload, target_tool).as_dict()
+    last_result["route_label_free"] = int(not bool(ROUTE_LABEL_RE.search(parent_payload or "")))
+    for attempt in range(max(1, max_attempts)):
+        candidate = llm_mutator.mutate(attacker, parent_payload, mode, exemplars, seed + attempt)
+        result = action_validator.validate_mutation(parent_payload, candidate, target_tool).as_dict()
+        label_free = not bool(ROUTE_LABEL_RE.search(candidate or ""))
+        result["route_label_free"] = int(label_free)
+        result["attempts"] = attempt + 1
+        if result["valid"] and label_free:
+            return candidate, result
+        if not label_free and "route_label_token_present" not in result["reasons"]:
+            result["reasons"].append("route_label_token_present")
+        last_payload, last_result = candidate, result
+    last_result["valid"] = int(bool(last_result.get("valid")) and bool(last_result.get("route_label_free")))
+    return last_payload, last_result
 
 
 def campaign(agent, decider, attacker, judge, decide_sop, base, exemplars, mode: str, budget: int,
@@ -173,7 +193,7 @@ def campaign(agent, decider, attacker, judge, decide_sop, base, exemplars, mode:
         sc += 1
 
     for it in range(n_seed, budget):
-        if mode == "swarm_handoff_proceed" and archive:
+        if mode in ("swarm_handoff_proceed", "swarm_handoff_proceed_nolabel") and archive:
             parent = rng.choice(sorted(archive, key=lambda r: r["route_score"], reverse=True)[:5])
             pp, tgt, ctx, pid, strategy = (
                 parent["payload"],
