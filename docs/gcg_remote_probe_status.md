@@ -16,6 +16,7 @@ Last updated: 2026-06-30
 - Remote dry-run/mock sanity check completed successfully without downloading model weights.
 - Remote local-model cache search completed successfully.
 - A local existing instruct model was found and used for a 1-payload real logprob sanity check without downloading new weights.
+- User approved 7B expansion; a 10-payload Qwen2.5-7B-Instruct real-logprob expanded scoring smoke completed successfully with no new weight downloads.
 
 ## Remote environment check
 
@@ -131,7 +132,7 @@ Last updated: 2026-06-30
 - Candidate scale-up after smoke:
   - 1.5B-class instruct model if the 0.5B sanity check works.
   - 3B only if download speed and disk headroom are acceptable.
-  - 7B should wait for user approval because remaining disk headroom is about 54 GiB and the branch should not burn large GPU/model-download budget yet.
+  - 7B expansion was later approved and completed using existing local weights, without downloading new model files.
 
 ## Local model cache search
 
@@ -193,6 +194,13 @@ Last updated: 2026-06-30
 - Real-model entry point: `--mode real --model Qwen/Qwen2.5-0.5B-Instruct`
 - No-download real-model entry point: add `--local-files-only` and pass a local model directory.
 - Latest script sync log: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/sync_local_files_only_script_20260630_224534.log`
+- Split/held-out summary support added:
+  - `--train-count`
+  - `--candidate-source`
+  - `--run-label`
+  - summary groups by `topology/control`, `split/topology/control`, and `split/topology/slot/control`
+- Latest split-summary script sync log:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/sync_split_summary_script_20260630_225205.log`
 - Topologies implemented for smoke:
   - `supervisor`
   - `swarm`
@@ -255,6 +263,108 @@ Last updated: 2026-06-30
   - swarm/human-lexicon phrase: -5.458
 - Interpretation: the pipeline can run a real local-model upstream-interface logprob objective. The current one-payload sanity is only a plumbing check, not evidence of held-out transfer or a paper-grade mechanism.
 
+## 7B real-logprob expanded scoring smoke
+
+- Status: success.
+- This is **not** full GCG optimization. It is fixed-span/control expanded scoring with a real 7B local model.
+- Model: `/root/autodl-tmp/models/Qwen2.5-7B-Instruct`
+- Download policy: no new weights; `--local-files-only` with `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1`.
+- Run id: `qwen25_7b_p10_20260630_225315`
+- Log:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/real_logprob_expansion_qwen25_7b_p10_20260630_225315.log`
+- Outputs:
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_position_free_real_qwen7b_p10.jsonl`
+  - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs/gcg_position_free_real_qwen7b_p10.summary.json`
+- Command shape:
+  - `python scripts/gcg_position_free_smoke.py --mode real --model /root/autodl-tmp/models/Qwen2.5-7B-Instruct --local-files-only --payload-limit 10 --train-count 5 --topologies supervisor swarm --span-length 4 --candidate-span "verified necessary remediation approval" --candidate-source "manual_lexical_seed_not_optimized_not_gcg" --run-label "qwen25_7b_p10_expanded_scoring_smoke" --out ...`
+- Runtime:
+  - start: `2026-06-30T22:53:15+08:00`
+  - end: `2026-06-30T22:54:50+08:00`
+  - runtime: 95 seconds
+- GPU / memory:
+  - before: Tesla V100S-PCIE-32GB, 0 MiB used, 32,495 MiB free
+  - observed during polling: about 15,060 MiB used, 17,435 MiB free, 97% GPU utilization
+  - after: Tesla V100S-PCIE-32GB, 0 MiB used, 32,495 MiB free
+- Errors/OOM:
+  - no OOM
+  - no runtime error
+  - process exited successfully and status file recorded `success`
+- Payload bookkeeping:
+  - payload file: `data/paradox_dataset_500.json`
+  - payload limit: 10
+  - train payload ids: `0`, `1`, `2`, `3`, `4`
+  - held-out payload ids: `5`, `6`, `7`, `8`, `9`
+- Topologies:
+  - `supervisor`
+  - `swarm`
+- Slots:
+  - `prefix`
+  - `after_incident_summary`
+  - `before_requested_action`
+  - `after_requested_action`
+  - `evidence_adjacent`
+  - `suffix`
+- Controls:
+  - `no_token`
+  - `candidate`
+  - `random_token`
+  - `human_lexicon_phrase`
+- Candidate span:
+  - `verified necessary remediation approval`
+  - source: `manual_lexical_seed_not_optimized_not_gcg`
+  - interpretation: fixed manual lexical seed, not discovered by GCG.
+- Output size:
+  - 280 scored rows
+- Overall score summary by topology/control:
+  - supervisor/candidate: n=60, mean=-5.884, min=-6.312, max=-5.465
+  - supervisor/human-lexicon phrase: n=60, mean=-5.884, min=-6.312, max=-5.465
+  - supervisor/no-token: n=10, mean=-7.029, min=-7.488, max=-6.469
+  - supervisor/random-token: n=10, mean=-6.964, min=-7.589, max=-6.449
+  - swarm/candidate: n=60, mean=-6.026, min=-6.883, max=-5.394
+  - swarm/human-lexicon phrase: n=60, mean=-5.432, min=-6.953, max=-4.480
+  - swarm/no-token: n=10, mean=-6.413, min=-7.083, max=-5.832
+  - swarm/random-token: n=10, mean=-6.588, min=-7.620, max=-5.806
+- Held-out split score summary:
+  - supervisor/candidate: n=30, mean=-5.894
+  - supervisor/human-lexicon phrase: n=30, mean=-5.894
+  - supervisor/no-token: n=5, mean=-7.048
+  - supervisor/random-token: n=5, mean=-7.014
+  - swarm/candidate: n=30, mean=-6.056
+  - swarm/human-lexicon phrase: n=30, mean=-5.515
+  - swarm/no-token: n=5, mean=-6.453
+  - swarm/random-token: n=5, mean=-6.496
+- Train split score summary:
+  - supervisor/candidate: n=30, mean=-5.875
+  - supervisor/human-lexicon phrase: n=30, mean=-5.875
+  - supervisor/no-token: n=5, mean=-7.010
+  - supervisor/random-token: n=5, mean=-6.915
+  - swarm/candidate: n=30, mean=-5.995
+  - swarm/human-lexicon phrase: n=30, mean=-5.349
+  - swarm/no-token: n=5, mean=-6.372
+  - swarm/random-token: n=5, mean=-6.680
+- Readout:
+  - The 7B local-model interface scoring path is viable.
+  - The fixed supervisor-flavored candidate improves supervisor target phrase likelihood over no-token/random controls on both train and held-out split.
+  - The swarm-specific human lexicon phrase is the stronger swarm lever in this fixed-span smoke.
+  - Because spans were not optimized, these are screening signals only, not mechanism evidence yet.
+
+## Minimal full GCG-search budget recommendation
+
+Do not launch this without explicit user approval.
+
+- Model: keep `/root/autodl-tmp/models/Qwen2.5-7B-Instruct`, local files only.
+- Topologies: supervisor + swarm only for the first true search.
+- Payload split: use the same 5 train / 5 held-out ids first; expand only after sanity.
+- Candidate span length: 4 tokens first, then 8 tokens only if 4-token search shows transfer.
+- Search budget: 20-30 coordinate steps per topology, 16-32 token candidates per coordinate.
+- Positions: all six current slots, but optimize on train only.
+- Controls: no-token, random-token, random-position, human lexicon phrase.
+- Acceptance criterion before scaling:
+  - train improvement over controls,
+  - held-out improvement in the same direction,
+  - no equal improvement on unrelated topology,
+  - embedding-nearest lexicon check points toward certainty / endorsement / specialist-readiness / remediation-planning semantics.
+
 ## Executed command summary
 
 - Checked local availability of `ssh.exe` and `scp.exe`.
@@ -287,16 +397,20 @@ Last updated: 2026-06-30
 - Ran a 1-payload real logprob sanity using the existing local `Qwen2.5-1.5B-Instruct` directory.
 - Added a `--local-files-only` option to `scripts/gcg_position_free_smoke.py` for future no-download real runs.
 - SFTP-synced the updated script to the remote snapshot and verified the new option with `--help`.
+- Added train/held-out split and detailed summary bookkeeping to `scripts/gcg_position_free_smoke.py`.
+- SFTP-synced the split-summary script to the remote snapshot and verified new args with `--help`.
+- Ran the 10-payload Qwen2.5-7B-Instruct expanded scoring smoke using only local files.
+- Recorded runtime, GPU memory, outputs, summaries, and no-OOM status.
 
 ## Immediate execution plan
 
-1. Do not download Qwen 0.5B weights; a complete local Qwen2.5-1.5B-Instruct model already exists and works for real sanity.
-2. If approved, expand the local Qwen2.5-1.5B-Instruct sanity from 1 payload to 10-20 payloads with held-out transfer bookkeeping.
-3. Add true GCG token-span optimization only after the interface-score plumbing and held-out split are locked.
-4. Do not start 7B or full GCG search until the user approves scaling.
+1. Await user approval before starting true position-free GCG search.
+2. If approved, implement a minimal coordinate-search loop over train payload ids only, then evaluate the selected span on held-out ids.
+3. Keep the current 7B local model and no-download policy.
+4. Do not expand to more payloads/topologies until the first optimized-span transfer result is interpretable.
 
 ## User decisions needed
 
 - No HuggingFace token is needed for the proposed first smoke model if `hf-mirror.com` remains usable.
-- No download is needed for the next Qwen2.5-1.5B step because the model already exists locally.
-- User approval is definitely needed before running 3B/7B models or a full GCG search.
+- No download is needed for the current 7B path because `/root/autodl-tmp/models/Qwen2.5-7B-Instruct` already exists locally.
+- User approval is needed before full position-free GCG search.
