@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import random
 from dataclasses import dataclass
 from pathlib import Path
@@ -193,6 +192,8 @@ def iter_cases(
     slots: Iterable[str],
     rng: random.Random,
     candidate_span: str,
+    candidate_source: str,
+    split_by_payload_id: dict[str, str],
 ) -> Iterable[dict]:
     for payload in payloads:
         for topology in topologies:
@@ -206,32 +207,57 @@ def iter_cases(
                     inserted = insert_span(payload, span, slot)
                     yield {
                         "payload_id": payload.payload_id,
+                        "split": split_by_payload_id[payload.payload_id],
                         "topology": topology,
                         "control": control,
                         "slot": slot,
                         "span": span,
+                        "candidate_source": candidate_source if control == "candidate" else "",
                         "inserted_payload": inserted,
                         "interface_prompt": interface_prompt(topology, inserted),
                     }
 
 
-def summarize(rows: list[dict]) -> dict:
-    grouped: dict[tuple[str, str], list[float]] = {}
+def make_split(payloads: list[Payload], train_count: int | None) -> dict[str, str]:
+    if train_count is None:
+        train_count = max(1, len(payloads) // 2)
+    train_count = min(max(train_count, 0), len(payloads))
+    split = {}
+    for idx, payload in enumerate(payloads):
+        split[payload.payload_id] = "train" if idx < train_count else "heldout"
+    return split
+
+
+def group_stats(rows: list[dict], fields: tuple[str, ...]) -> list[dict]:
+    grouped: dict[tuple[str, ...], list[float]] = {}
     for row in rows:
-        grouped.setdefault((row["topology"], row["control"]), []).append(float(row["score"]))
+        key = tuple(str(row[field]) for field in fields)
+        grouped.setdefault(key, []).append(float(row["score"]))
     summary = []
-    for (topology, control), values in sorted(grouped.items()):
-        summary.append(
+    for key, values in sorted(grouped.items()):
+        item = {field: value for field, value in zip(fields, key)}
+        item.update(
             {
-                "topology": topology,
-                "control": control,
                 "n": len(values),
                 "mean_score": sum(values) / len(values),
                 "min_score": min(values),
                 "max_score": max(values),
             }
         )
-    return {"groups": summary}
+        summary.append(item)
+    return summary
+
+
+def summarize(rows: list[dict], metadata: dict) -> dict:
+    return {
+        "metadata": metadata,
+        "by_topology_control": group_stats(rows, ("topology", "control")),
+        "by_split_topology_control": group_stats(rows, ("split", "topology", "control")),
+        "by_split_topology_slot_control": group_stats(
+            rows,
+            ("split", "topology", "slot", "control"),
+        ),
+    }
 
 
 def parse_args() -> argparse.Namespace:
@@ -243,10 +269,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--slots", nargs="+", default=list(SLOTS))
     parser.add_argument("--span-length", type=int, default=4)
     parser.add_argument("--candidate-span", default="verified necessary remediation approval")
+    parser.add_argument(
+        "--candidate-source",
+        default="manual_lexical_seed_not_optimized",
+        help="Recorded provenance for the fixed candidate span.",
+    )
+    parser.add_argument(
+        "--train-count",
+        type=int,
+        default=None,
+        help="First N loaded payloads are marked train; remainder are heldout.",
+    )
     parser.add_argument("--model", default="Qwen/Qwen2.5-0.5B-Instruct")
     parser.add_argument("--device", default="auto")
     parser.add_argument("--local-files-only", action="store_true")
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument("--run-label", default="position_free_scoring_smoke")
     parser.add_argument("--out", default="scratch/gcg_position_free_smoke.jsonl")
     return parser.parse_args()
 
@@ -264,6 +302,7 @@ def main() -> int:
 
     rng = random.Random(args.seed)
     payloads = load_payloads(Path(args.payload_file), args.payload_limit)
+    split_by_payload_id = make_split(payloads, args.train_count)
     scorer = (
         RealScorer(args.model, args.device, args.local_files_only)
         if args.mode == "real"
@@ -271,7 +310,15 @@ def main() -> int:
     )
 
     rows: list[dict] = []
-    for case in iter_cases(payloads, args.topologies, args.slots, rng, args.candidate_span):
+    for case in iter_cases(
+        payloads,
+        args.topologies,
+        args.slots,
+        rng,
+        args.candidate_span,
+        args.candidate_source,
+        split_by_payload_id,
+    ):
         score = (
             scorer.score(case["topology"], case["interface_prompt"])
             if scorer is not None
@@ -279,13 +326,39 @@ def main() -> int:
         )
         rows.append({k: v for k, v in case.items() if k != "interface_prompt"} | {"score": score})
 
+    train_payload_ids = [p.payload_id for p in payloads if split_by_payload_id[p.payload_id] == "train"]
+    heldout_payload_ids = [
+        p.payload_id for p in payloads if split_by_payload_id[p.payload_id] == "heldout"
+    ]
+    metadata = {
+        "run_label": args.run_label,
+        "mode": args.mode,
+        "model": args.model,
+        "local_files_only": args.local_files_only,
+        "payload_file": args.payload_file,
+        "payload_limit": args.payload_limit,
+        "train_payload_ids": train_payload_ids,
+        "heldout_payload_ids": heldout_payload_ids,
+        "topologies": args.topologies,
+        "slots": args.slots,
+        "span_length": args.span_length,
+        "candidate_span": args.candidate_span,
+        "candidate_source": args.candidate_source,
+        "controls": ["no_token", "candidate", "random_token", "human_lexicon_phrase"],
+        "objective": "upstream_interface_target_phrase_average_logprob"
+        if args.mode == "real"
+        else "transparent_lexical_proxy",
+        "optimization_status": "fixed_span_scoring_only_not_full_gcg_optimization",
+        "seed": args.seed,
+    }
+
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", encoding="utf-8") as f:
         for row in rows:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
     summary_path = out_path.with_suffix(".summary.json")
-    summary_path.write_text(json.dumps(summarize(rows), indent=2), encoding="utf-8")
+    summary_path.write_text(json.dumps(summarize(rows, metadata), indent=2), encoding="utf-8")
     print(f"wrote {len(rows)} rows to {out_path}")
     print(f"wrote summary to {summary_path}")
     return 0
