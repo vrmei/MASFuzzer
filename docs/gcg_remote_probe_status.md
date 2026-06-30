@@ -74,6 +74,9 @@ Last updated: 2026-06-30
 - Root disk is too tight for model caches. Any HuggingFace/model cache should be placed under `/root/autodl-tmp`.
 - After creating the isolated conda environment, `/root/autodl-tmp` has about 54 GiB free.
 - HuggingFace direct downloads may be blocked from this host. GitHub is reachable, so alternatives may include mirrored model sources, manually supplied cached weights, or `hf-mirror.com` if allowed by the server network.
+- Follow-up check: `hf-mirror.com` is usable for small HuggingFace Hub downloads through `HF_ENDPOINT=https://hf-mirror.com`.
+- Immediate model-download path appears available for ungated models such as `Qwen/Qwen2.5-0.5B-Instruct` via the mirror.
+- HuggingFace token status: no token is present in the environment; no token appears necessary for the first ungated 0.5B smoke model.
 
 ## Repository setup
 
@@ -108,6 +111,24 @@ Last updated: 2026-06-30
   - `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/runs`
 - Smoke import result: success for `torch`, `transformers`, `accelerate`, `numpy`, `scipy`, and `sentencepiece`.
 
+## Model download readiness
+
+- Probe log: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/model_download_probe_20260630_223311.log`
+- Mirror small-download log: `/root/autodl-tmp/masfuzzer-gcg-probe-20260630/logs/hf_mirror_small_download_20260630_223409.log`
+- Direct `huggingface.co` model config check:
+  - Result: timeout / connection errors from remote.
+- `hf-mirror.com` model config check:
+  - `curl -I -L` reached the Qwen2.5-0.5B-Instruct config endpoint.
+  - `curl -L` downloaded `config.json` successfully.
+  - `huggingface_hub.hf_hub_download` with `HF_ENDPOINT=https://hf-mirror.com` downloaded `config.json` successfully.
+- Candidate first smoke model:
+  - `Qwen/Qwen2.5-0.5B-Instruct`
+  - Rationale: ungated, small, instruct-tuned, and confirmed reachable through mirror metadata.
+- Candidate scale-up after smoke:
+  - 1.5B-class instruct model if the 0.5B sanity check works.
+  - 3B only if download speed and disk headroom are acceptable.
+  - 7B should wait for user approval because remaining disk headroom is about 54 GiB and the branch should not burn large GPU/model-download budget yet.
+
 ## Executed command summary
 
 - Checked local availability of `ssh.exe` and `scp.exe`.
@@ -129,15 +150,17 @@ Last updated: 2026-06-30
 - Created isolated remote conda environment under the experiment directory.
 - Verified CUDA availability from the isolated environment.
 - Created activation helper and cache directories under `/root/autodl-tmp`.
+- Probed model-source connectivity for HuggingFace, `hf-mirror.com`, and ModelScope.
+- Verified small `config.json` download from `hf-mirror.com` using both `curl` and `huggingface_hub`.
 
 ## Immediate execution plan
 
-1. Probe model-download feasibility without downloading large model weights.
-2. Prepare the minimal smoke script skeleton for supervisor + swarm, 10-20 payloads, six insertion slots, 4-8 token spans, and controls.
-3. Run only a dry-run/mock or 1-2 payload sanity check.
-4. Do not start a large GCG search until the user approves the model/download path.
+1. Prepare the minimal smoke script skeleton for supervisor + swarm, 10-20 payloads, six insertion slots, 4-8 token spans, and controls.
+2. Run only a dry-run/mock or 1-2 payload sanity check.
+3. Optionally download only the 0.5B smoke model through `hf-mirror.com` if a real sanity check is needed.
+4. Do not start a large GCG search until the user approves scaling beyond the tiny smoke.
 
 ## User decisions needed
 
-- Need a model-download decision if HuggingFace remains unreachable from the remote host. A HuggingFace token alone may not fix the current issue because the observed failure was connection refused, not authentication denied.
-- No decision needed before script skeleton and dry-run/mock.
+- No HuggingFace token is needed for the proposed first smoke model if `hf-mirror.com` remains usable.
+- User approval is needed before downloading/running 3B or 7B models, or before starting a full GCG search.
