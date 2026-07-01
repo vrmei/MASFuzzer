@@ -187,7 +187,13 @@ def main():
           f"budget={args.budget}/arm  max_workers={args.max_workers}", flush=True)
     print("=" * 90, flush=True)
 
-    exemplars, scored = llm_mutator.mine_exemplars(m, [b[0] for b in base], k=4, seed0=100)
+    exemplars, scored = llm_mutator.mine_exemplars(
+        m,
+        [b[0] for b in base],
+        k=4,
+        seed0=100,
+        max_workers=max(1, args.max_workers),
+    )
     print(f"mined {len(exemplars)} exemplars (top lex={scored[0][0]:.1f})", flush=True)
 
     results, all_recs = {"arch": args.arch}, []
