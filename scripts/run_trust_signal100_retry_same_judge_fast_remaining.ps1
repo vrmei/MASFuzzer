@@ -3,8 +3,8 @@ $ErrorActionPreference = "Stop"
 $runs = @(
   @{
     arch = "supervisor";
-    arms = "neutral,concat";
-    label = "supervisor_certainty_retry_neutral_concat"
+    arms = "concat";
+    label = "supervisor_certainty_retry_concat_fast"
   },
   @{
     arch = "groupchat";
@@ -35,17 +35,17 @@ $maxWorkers = if ($env:TRUST_SIGNAL_MAX_WORKERS) {
 }
 
 $runStamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$status = "logs\trust_signal100_retry_same_judge.status.txt"
+$status = "logs\trust_signal100_retry_same_judge_fast_remaining.status.txt"
 $env:D5_JUDGE_MODEL = "openai/gpt-4o-mini"
-"TRUST_SIGNAL100_RETRY_SAME_JUDGE started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') judge=$env:D5_JUDGE_MODEL validation_attempts=$maxValidationAttempts max_workers=$maxWorkers" |
+"TRUST_SIGNAL100_RETRY_SAME_JUDGE_FAST_REMAINING started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') judge=$env:D5_JUDGE_MODEL validation_attempts=$maxValidationAttempts max_workers=$maxWorkers" |
   Tee-Object -FilePath $status
 
 foreach ($run in $runs) {
   $env:D5_TRACE = "1"
-  $env:D5_TRACE_FILE = "logs\llm_traces\trust_signal100_retry_same_judge_$($runStamp)_$($run.label).jsonl"
+  $env:D5_TRACE_FILE = "logs\llm_traces\trust_signal100_retry_same_judge_fast_remaining_$($runStamp)_$($run.label).jsonl"
 
-  $out = "logs\trust_signal100_retry_same_judge_$($run.label).json"
-  $console = "logs\trust_signal100_retry_same_judge_$($run.label).console.log"
+  $out = "logs\trust_signal100_retry_same_judge_fast_remaining_$($run.label).json"
+  $console = "logs\trust_signal100_retry_same_judge_fast_remaining_$($run.label).console.log"
   $cmd = @(
     "src\run_arch_matrix.py",
     "--arch", $run.arch,
@@ -69,9 +69,9 @@ foreach ($run in $runs) {
     Tee-Object -FilePath $status -Append
 
   if ($code -ne 0) {
-    throw "trust_signal100 retry failed for $($run.label) with exit code $code"
+    throw "trust_signal100 fast remaining failed for $($run.label) with exit code $code"
   }
 }
 
-"TRUST_SIGNAL100_RETRY_SAME_JUDGE finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" |
+"TRUST_SIGNAL100_RETRY_SAME_JUDGE_FAST_REMAINING finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" |
   Tee-Object -FilePath $status -Append

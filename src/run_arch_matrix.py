@@ -14,7 +14,7 @@ validated judge on the system's final decision. Usage:
   python run_arch_matrix.py --arch supervisor --seeds 10 --budget 40 --rigor strict
 """
 from __future__ import annotations
-import argparse, json, os, random
+import argparse, concurrent.futures, json, os, random
 from scipy import stats
 
 import config
@@ -42,42 +42,101 @@ def evaluate(arch_fn, m, judge, sop, payload, target_tool, seed_int, decider=Non
 
 
 def campaign(arch_fn, m, attacker, judge, sop, base, exemplars, budget, mode, rng, seed0, decider=None,
-             validate_mutants=True, max_validation_attempts=3):
+             validate_mutants=True, max_validation_attempts=3, max_workers=1):
     recs, archive = [], []
     sc = seed0
     n_seed = min(len(base), max(2, budget // 6))
-    for i in range(n_seed):
-        r = evaluate(arch_fn, m, judge, sop, base[i][0], base[i][1], sc, decider=decider); sc += 1
-        recs.append(r); archive.append(r)
-    for it in range(n_seed, budget):
-        if mode in ("certainty", "recipe") and archive:
-            key = "lex_raw" if mode == "certainty" else "grade"
-            parent = rng.choice(sorted(archive, key=lambda r: r[key], reverse=True)[:5])
-            pp, tgt = parent["payload"], parent["target_tool"]
-        else:
+    seed_jobs = [(i, seed0 + i, base[i][0], base[i][1]) for i in range(n_seed)]
+    if max_workers > 1:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futs = [
+                ex.submit(evaluate, arch_fn, m, judge, sop, payload, target_tool, seed, decider)
+                for _, seed, payload, target_tool in seed_jobs
+            ]
+            for fut in futs:
+                r = fut.result()
+                recs.append(r); archive.append(r)
+    else:
+        for _, seed, payload, target_tool in seed_jobs:
+            r = evaluate(arch_fn, m, judge, sop, payload, target_tool, seed, decider=decider)
+            recs.append(r); archive.append(r)
+    sc += n_seed
+
+    if max_workers > 1 and mode not in ("certainty", "recipe"):
+        seed_stride = max(8, max_validation_attempts + 4)
+        jobs = []
+        for it in range(n_seed, budget):
             pp, tgt = rng.choice(base)
-        if mode == "concat":          # historical RANDOM baseline: chain 1-3 hand-coded attack operators
-            cs = ConcatSeed(payload=pp, target_tool=tgt, pid=0)
-            for _ in range(rng.randint(1, 3)):
-                cs = rng.choice(ALL_OPS)(cs)
-            full = cs.payload + ("\n" + cs.inject if cs.inject else "")   # no inter-agent inject channel here
-            validation = action_validator.validate_mutation(pp, full, tgt).as_dict()
-            r = evaluate(arch_fn, m, judge, sop, full, tgt, sc, decider=decider); sc += 1
-        else:                          # certainty / recipe / neutral: LLM rewrite
-            if validate_mutants:
-                mut, validation = llm_mutator.mutate_validated(
-                    attacker, pp, tgt, mode, exemplars, sc, max_attempts=max_validation_attempts
-                )
-                sc += validation.get("attempts", max_validation_attempts)
+            job = {"payload": pp, "target_tool": tgt, "seed": sc, "mode": mode}
+            sc += seed_stride
+            if mode == "concat":
+                job["ops"] = [rng.choice(ALL_OPS) for _ in range(rng.randint(1, 3))]
+            jobs.append(job)
+
+        def run_job(job):
+            pp, tgt = job["payload"], job["target_tool"]
+            if mode == "concat":
+                cs = ConcatSeed(payload=pp, target_tool=tgt, pid=0)
+                for op in job["ops"]:
+                    cs = op(cs)
+                full = cs.payload + ("\n" + cs.inject if cs.inject else "")
+                validation = action_validator.validate_mutation(pp, full, tgt).as_dict()
+                eval_seed = job["seed"]
+                r = evaluate(arch_fn, m, judge, sop, full, tgt, eval_seed, decider=decider)
             else:
-                mut = llm_mutator.mutate(attacker, pp, mode, exemplars, sc)
-                validation = action_validator.validate_mutation(pp, mut, tgt).as_dict()
-                sc += 1
-            r = evaluate(arch_fn, m, judge, sop, mut, tgt, sc, decider=decider); sc += 1
-        r["mutation_mode"] = mode
-        r["mutation_valid"] = validation["valid"]
-        r["mutation_validation"] = validation
-        recs.append(r); archive.append(r)
+                if validate_mutants:
+                    mut, validation = llm_mutator.mutate_validated(
+                        attacker, pp, tgt, mode, exemplars, job["seed"], max_attempts=max_validation_attempts
+                    )
+                    eval_seed = job["seed"] + validation.get("attempts", max_validation_attempts)
+                else:
+                    mut = llm_mutator.mutate(attacker, pp, mode, exemplars, job["seed"])
+                    validation = action_validator.validate_mutation(pp, mut, tgt).as_dict()
+                    eval_seed = job["seed"] + 1
+                r = evaluate(arch_fn, m, judge, sop, mut, tgt, eval_seed, decider=decider)
+            r["mutation_mode"] = mode
+            r["mutation_valid"] = validation["valid"]
+            r["mutation_validation"] = validation
+            r["parallel_record_seed"] = job["seed"]
+            return r
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futs = [ex.submit(run_job, job) for job in jobs]
+            for fut in futs:
+                r = fut.result()
+                recs.append(r); archive.append(r)
+    else:
+        if max_workers > 1 and mode in ("certainty", "recipe"):
+            print(f"  [info] mode={mode} uses adaptive archive; keeping post-seed loop serial", flush=True)
+        for it in range(n_seed, budget):
+            if mode in ("certainty", "recipe") and archive:
+                key = "lex_raw" if mode == "certainty" else "grade"
+                parent = rng.choice(sorted(archive, key=lambda r: r[key], reverse=True)[:5])
+                pp, tgt = parent["payload"], parent["target_tool"]
+            else:
+                pp, tgt = rng.choice(base)
+            if mode == "concat":          # historical RANDOM baseline: chain 1-3 hand-coded attack operators
+                cs = ConcatSeed(payload=pp, target_tool=tgt, pid=0)
+                for _ in range(rng.randint(1, 3)):
+                    cs = rng.choice(ALL_OPS)(cs)
+                full = cs.payload + ("\n" + cs.inject if cs.inject else "")   # no inter-agent inject channel here
+                validation = action_validator.validate_mutation(pp, full, tgt).as_dict()
+                r = evaluate(arch_fn, m, judge, sop, full, tgt, sc, decider=decider); sc += 1
+            else:                          # certainty / recipe / neutral: LLM rewrite
+                if validate_mutants:
+                    mut, validation = llm_mutator.mutate_validated(
+                        attacker, pp, tgt, mode, exemplars, sc, max_attempts=max_validation_attempts
+                    )
+                    sc += validation.get("attempts", max_validation_attempts)
+                else:
+                    mut = llm_mutator.mutate(attacker, pp, mode, exemplars, sc)
+                    validation = action_validator.validate_mutation(pp, mut, tgt).as_dict()
+                    sc += 1
+                r = evaluate(arch_fn, m, judge, sop, mut, tgt, sc, decider=decider); sc += 1
+            r["mutation_mode"] = mode
+            r["mutation_valid"] = validation["valid"]
+            r["mutation_validation"] = validation
+            recs.append(r); archive.append(r)
 
     lex = [r["lex_raw"] for r in recs]
     return {"mode": mode, "n": len(recs), "max_lex": max(lex), "mean_lex": sum(lex) / len(lex),
@@ -106,6 +165,8 @@ def main():
     ap.add_argument("--no-validate-mutants", action="store_true",
                     help="disable action-preservation retry gate; validation is still logged")
     ap.add_argument("--max-validation-attempts", type=int, default=3)
+    ap.add_argument("--max-workers", type=int, default=1,
+                    help="parallel payload workers within an arm; adaptive certainty/recipe stay serial after seed evals")
     ap.add_argument("--rngseed", type=int, default=0)
     ap.add_argument("--out", default="")
     args = ap.parse_args()
@@ -123,7 +184,7 @@ def main():
     print("=" * 90, flush=True)
     print(f"D5 ARCH-MATRIX  arch={args.arch}  model={config.MODELS['worker']}  attacker={args.attacker}  "
           f"decider={args.decider_model or '(same)'}  rigor={args.rigor}  seeds={args.seeds}  "
-          f"budget={args.budget}/arm", flush=True)
+          f"budget={args.budget}/arm  max_workers={args.max_workers}", flush=True)
     print("=" * 90, flush=True)
 
     exemplars, scored = llm_mutator.mine_exemplars(m, [b[0] for b in base], k=4, seed0=100)
@@ -135,7 +196,8 @@ def main():
         r = campaign(arch_fn, m, attacker, judge, sop, base, exemplars, args.budget, mode, rng,
                      seed0=30000 + 1000 * k, decider=decider,
                      validate_mutants=not args.no_validate_mutants,
-                     max_validation_attempts=args.max_validation_attempts)
+                     max_validation_attempts=args.max_validation_attempts,
+                     max_workers=max(1, args.max_workers))
         results[mode] = r; all_recs += r["records"]
         print(f"  [{mode:9s}] ASR={r['asr']:.2f}  mean_lex={r['mean_lex']:6.2f}  hij={r['n_hijack']:2d}  "
               f"deep={r['n_deep']:2d}  coherence={r['mean_coherence']:.2f}  valid={r['valid_rate']:.2f}", flush=True)
