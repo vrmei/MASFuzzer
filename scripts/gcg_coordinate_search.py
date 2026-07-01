@@ -418,6 +418,7 @@ def coordinate_search_topology(
     candidate_pool: str,
     rng: random.Random,
     warm_start: str,
+    allow_repeat_span_words: bool,
 ) -> tuple[dict, list[dict]]:
     words = warm_start.split()[:span_length]
     if len(words) < span_length:
@@ -464,6 +465,17 @@ def coordinate_search_topology(
             trial_words = list(current_words)
             trial_words[coord] = word
             trial_span = make_span(trial_words)
+            if not allow_repeat_span_words and len({w.lower() for w in trial_words}) < len(trial_words):
+                candidate_rows.append(
+                    {
+                        "word": word,
+                        "span": trial_span,
+                        "slot": best_slot,
+                        "score": None,
+                        "skipped": "repeat_span_word",
+                    }
+                )
+                continue
             trial_score = score_span_slot(scorer, topology, train_payloads, trial_span, best_slot)
             candidate_rows.append(
                 {
@@ -660,6 +672,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Disable controls that evaluate each selected span on the other requested topologies.",
     )
+    parser.add_argument(
+        "--allow-repeat-span-words",
+        action="store_true",
+        help="Allow the coordinate search to select the same word more than once in a span.",
+    )
     parser.add_argument("--model", default="Qwen/Qwen2.5-7B-Instruct")
     parser.add_argument("--device", default="auto")
     parser.add_argument("--local-files-only", action="store_true")
@@ -710,6 +727,7 @@ def main() -> int:
             args.candidate_pool,
             rng,
             warm_start,
+            args.allow_repeat_span_words,
         )
         selections.append(selection)
         trajectory.extend(topology_trajectory)
@@ -752,6 +770,7 @@ def main() -> int:
         "steps": args.steps,
         "candidates_per_step": args.candidates_per_step,
         "candidate_pool": args.candidate_pool,
+        "repeat_span_words_allowed": args.allow_repeat_span_words,
         "cross_topology_controls": not args.no_cross_topology_controls,
         "objective": "train_split_topology_specific_upstream_interface_average_logprob"
         if args.mode == "real"
